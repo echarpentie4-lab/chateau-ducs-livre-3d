@@ -29,7 +29,7 @@ export default function Scene({ state, dispatch, catalogue, spreadsByBook }) {
       camera={{ fov: FOV, near: 0.1, far: 60, position: [start.x, start.y, start.z] }}
     >
       <color attach="background" args={['#0d0806']} />
-      <fog attach="fog" args={['#0d0806', 8, 19]} />
+      <fog attach="fog" args={['#0d0806', 10, 23]} />
 
       <ambientLight intensity={0.22} color="#ffd7a8" />
       <hemisphereLight args={['#ffdcb0', '#20130a', 0.35]} />

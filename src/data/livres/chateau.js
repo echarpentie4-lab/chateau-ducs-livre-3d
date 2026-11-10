@@ -32,7 +32,7 @@ export const bookMeta = {
   // Titre affiché sous le carrousel de la bibliothèque
   shelfTitle: "Le Château des ducs de Bretagne",
   // Couleur du cuir de la reliure
-  leather: "#4a2415",
+  leather: "#6a2216", // rouge brique
   // Décor doré de la couverture : motif central + coins (le coin bas-droit = la nef de Nantes)
   // motifs possibles : castle, tower, ermine, lu, biscuit, passage, lantern, stairs,
   //                    elephant, gear, cathedral, rose, arch, nef

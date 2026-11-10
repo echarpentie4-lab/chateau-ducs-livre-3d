@@ -13,7 +13,7 @@
 
 export const bookMeta = {
   shelfTitle: "La Cathédrale Saint-Pierre-et-Saint-Paul",
-  leather: "#3d1c2a",
+  leather: "#5a2f82", // violet épiscopal
   cover: { emblem: "cathedral", corners: { tl: "rose", tr: "rose", bl: "arch" } },
 
   coverKicker: "Histoire de la",

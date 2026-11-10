@@ -9,9 +9,9 @@ import { carouselPose, alignPose, readingPose, pagePose, popupPose } from '../th
 const MODES = {
   carousel: { disabled: true }, // la caméra est fixe : c'est le cercle de livres qui tourne
   orbit: { rotate: true, minDist: 2.6, maxDist: 9, minPolar: 0.08, maxPolar: Math.PI * 0.56 },
-  reading: { rotate: false, minDist: 1.0, maxDist: 8, minPolar: 0, maxPolar: Math.PI * 0.45 },
-  zoom: { rotate: false, pan: true, minDist: 0.6, maxDist: 8, minPolar: 0, maxPolar: Math.PI * 0.45 },
-  popup: { rotate: true, minDist: 1.2, maxDist: 7, minPolar: 0.15, maxPolar: Math.PI * 0.46 },
+  reading: { rotate: false, minDist: 1.0, maxDist: 22, minPolar: 0, maxPolar: Math.PI * 0.45 },
+  zoom: { rotate: false, pan: true, minDist: 0.6, maxDist: 22, minPolar: 0, maxPolar: Math.PI * 0.45 },
+  popup: { rotate: true, minDist: 1.2, maxDist: 16, minPolar: 0.15, maxPolar: Math.PI * 0.46 },
 }
 
 export default function Director({ phase, spread, zoom, spreads, anim, leafStates, popAnim, shelf, dispatch }) {

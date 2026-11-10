@@ -13,7 +13,7 @@
 
 export const bookMeta = {
   shelfTitle: "Le Lieu Unique",
-  leather: "#1f3346",
+  leather: "#1f4f86", // bleu LU
   cover: { emblem: "lu", corners: { tl: "biscuit", tr: "biscuit", bl: "lu" } },
 
   coverKicker: "Histoire du",

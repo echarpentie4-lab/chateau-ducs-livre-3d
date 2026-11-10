@@ -8,13 +8,13 @@ const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-4 focus-
 // Boutons cuir & laiton
 const leatherBtn =
   `pointer-events-auto relative flex min-h-14 items-center justify-center gap-3 rounded-md border border-gold/70 ` +
-  `bg-gradient-to-b from-[#3d2112] to-[#1a0d06] px-4 py-3 sm:px-7 sm:py-4 font-display text-xs sm:text-base uppercase ` +
+  `shrink-0 bg-gradient-to-b from-[#3d2112] to-[#1a0d06] px-3 py-3 sm:px-7 sm:py-4 font-display text-xs sm:text-base uppercase ` +
   `tracking-[0.16em] text-gold-light shadow-[inset_0_1px_0_rgba(240,216,154,0.35),0_10px_28px_rgba(0,0,0,0.55)] ` +
   `transition duration-300 hover:-translate-y-0.5 hover:border-gold hover:text-white ` +
   `disabled:pointer-events-none disabled:opacity-30 ${focusRing}`
 const brassBtn =
   `pointer-events-auto relative flex min-h-14 items-center justify-center gap-3 rounded-md border border-[#f0d89a]/80 ` +
-  `bg-gradient-to-b from-[#e2c072] via-[#c39a4c] to-[#8a6a2c] px-4 py-3 sm:px-7 sm:py-4 font-display text-xs sm:text-base ` +
+  `shrink-0 bg-gradient-to-b from-[#e2c072] via-[#c39a4c] to-[#8a6a2c] px-3 py-3 sm:px-7 sm:py-4 font-display text-xs sm:text-base ` +
   `font-bold uppercase tracking-[0.16em] text-[#1d0f06] shadow-[inset_0_1px_0_rgba(255,245,210,0.7),0_10px_28px_rgba(0,0,0,0.55)] ` +
   `transition duration-300 hover:-translate-y-0.5 hover:brightness-110 disabled:pointer-events-none disabled:opacity-30 ${focusRing}`
 const smallBtn =
@@ -25,6 +25,10 @@ const smallBtn =
 const roundBtn =
   `pointer-events-auto grid h-14 w-14 md:h-16 md:w-16 place-items-center rounded-full border border-gold/55 bg-[#140b06]/70 ` +
   `text-gold-light backdrop-blur-sm transition duration-300 hover:scale-110 hover:border-gold hover:text-white ${focusRing}`
+
+const smallRound =
+  `pointer-events-auto grid h-11 w-11 place-items-center rounded-full border border-gold/55 bg-[#140b06]/75 ` +
+  `text-gold-light backdrop-blur-sm transition active:scale-95 ${focusRing}`
 
 const spreadLabel = (s) => (s.kind === 'popup' ? 'Planche dépliante' : `Chapitre ${roman(s.number)}`)
 
@@ -49,14 +53,14 @@ export default function UI({ state, catalogue, spreads, dispatch }) {
       {closed && (
         <>
           <button
-            className={`fade-up ${roundBtn} absolute left-3 top-1/2 -translate-y-1/2 md:left-10`}
+            className={`fade-up ${roundBtn} absolute left-6 top-[42%] hidden -translate-y-1/2 md:grid lg:left-12`}
             onClick={() => dispatch({ type: 'PREV' })}
             aria-label="Livre précédent"
           >
             <ChevronLeft size={30} strokeWidth={1.4} />
           </button>
           <button
-            className={`fade-up ${roundBtn} absolute right-3 top-1/2 -translate-y-1/2 md:right-10`}
+            className={`fade-up ${roundBtn} absolute right-6 top-[42%] hidden -translate-y-1/2 md:grid lg:right-12`}
             onClick={() => dispatch({ type: 'NEXT' })}
             aria-label="Livre suivant"
           >
@@ -64,9 +68,14 @@ export default function UI({ state, catalogue, spreads, dispatch }) {
           </button>
 
           <div className="fade-up absolute inset-x-0 bottom-6 md:bottom-10 flex flex-col items-center gap-3 px-4 text-center">
-            <p aria-live="polite" key={book} className="fade-up font-serif text-2xl md:text-4xl italic text-gold-light drop-shadow">
+            <p aria-live="polite" key={book} className="fade-up max-w-[90vw] font-serif text-[1.6rem] leading-tight md:text-4xl italic text-gold-light drop-shadow">
               {shelfBook.meta.shelfTitle}
             </p>
+            <div className="flex items-center gap-3">
+            {/* flèches compactes sur mobile, de part et d'autre des points */}
+            <button className={`${smallRound} md:hidden`} onClick={() => dispatch({ type: 'PREV' })} aria-label="Livre précédent">
+              <ChevronLeft size={22} strokeWidth={1.5} />
+            </button>
             <div className="flex gap-2" role="tablist" aria-label="Livres de la bibliothèque">
               {catalogue.map((b, i) => (
                 <button
@@ -81,11 +90,15 @@ export default function UI({ state, catalogue, spreads, dispatch }) {
                 />
               ))}
             </div>
+            <button className={`${smallRound} md:hidden`} onClick={() => dispatch({ type: 'NEXT' })} aria-label="Livre suivant">
+              <ChevronRight size={22} strokeWidth={1.5} />
+            </button>
+            </div>
             <button
               onClick={() => dispatch({ type: 'OPEN' })}
               className={`cta-glow group pointer-events-auto relative mt-1 flex items-center gap-4 rounded-[3px] border border-gold/70
-                bg-gradient-to-b from-[#2c180d]/95 to-[#120a05]/95 px-9 py-4 md:px-14 md:py-5
-                font-display text-base md:text-xl uppercase tracking-[0.28em] text-gold-light
+                bg-gradient-to-b from-[#2c180d]/95 to-[#120a05]/95 px-7 py-4 sm:px-9 md:px-14 md:py-5
+                font-display text-sm sm:text-base md:text-xl uppercase tracking-[0.2em] sm:tracking-[0.28em] text-gold-light
                 backdrop-blur transition-all duration-500 hover:scale-[1.04] hover:border-gold hover:text-white ${focusRing}`}
             >
               <span className="pointer-events-none absolute inset-[5px] rounded-[2px] border border-gold/25" />
@@ -127,7 +140,7 @@ export default function UI({ state, catalogue, spreads, dispatch }) {
             </button>
             <div
               aria-live="polite"
-              className="flex min-w-[8.5rem] flex-col items-center rounded-full border border-gold/40 bg-[#140b06]/80 px-4 py-2 sm:px-6 backdrop-blur-sm"
+              className="flex min-w-0 shrink flex-col items-center rounded-full border border-gold/40 bg-[#140b06]/80 px-3 py-2 sm:min-w-[8.5rem] sm:px-6 backdrop-blur-sm"
             >
               <span className="whitespace-nowrap font-display text-[11px] sm:text-sm uppercase tracking-[0.22em] text-gold-light">
                 Page {spread + 1} sur {spreads.length}
@@ -165,7 +178,7 @@ export default function UI({ state, catalogue, spreads, dispatch }) {
                 ))}
               </div>
               <p className="flex items-center gap-2 rounded-full bg-[#140b06]/60 px-3 py-1 font-serif italic text-xs sm:text-sm text-gold-light/75">
-                <Hand size={14} /> Faites glisser pour parcourir la page · molette pour ajuster
+                <Hand size={14} /> Faites glisser pour parcourir la page<span className="hidden md:inline"> · molette pour ajuster</span><span className="md:hidden"> · pincez pour zoomer</span>
               </p>
             </div>
           )}

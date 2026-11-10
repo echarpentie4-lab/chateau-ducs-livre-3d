@@ -57,9 +57,12 @@ export const popupPose = (w, h, zoom) => {
 }
 
 // Bibliothèque : face au livre du premier plan, les voisins visibles de part et d'autre.
+// Sur écran étroit (portrait), on recule juste assez pour que le livre tienne en largeur.
 export const carouselPose = (w, h) => {
-  const k = w / h < 1 ? Math.min(2.4, 1.3 / (w / h)) : 1
-  // cible sous le livre : il apparaît dans la moitié haute, au-dessus du titre et du bouton
-  const target = { x: 0, y: HOVER_Y - 0.75, z: -1.2 }
-  return { pos: { x: 0, y: HOVER_Y + 0.35 * k, z: target.z + 7.6 * k }, target }
+  const aspect = w / h
+  const d = Math.max(6.4, (COVER_W * 1.1) / 0.7 / (2 * T * aspect)) // distance caméra → livre du premier plan
+  // le livre est placé dans la moitié haute, au-dessus du titre et du bouton
+  const lift = h < 700 ? 0.55 : aspect < 0.8 ? 0.5 : aspect < 1.3 ? 0.95 : 0.75
+  const target = { x: 0, y: HOVER_Y - lift * (d / 6.4), z: -1.2 }
+  return { pos: { x: 0, y: HOVER_Y + 0.35, z: d }, target }
 }

@@ -13,7 +13,7 @@
 
 export const bookMeta = {
   shelfTitle: "Le Passage Pommeraye",
-  leather: "#2c3b2a",
+  leather: "#1d6044", // vert émeraude
   cover: { emblem: "passage", corners: { tl: "lantern", tr: "lantern", bl: "stairs" } },
 
   coverKicker: "Histoire du",

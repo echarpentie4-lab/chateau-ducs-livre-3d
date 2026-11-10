@@ -13,7 +13,7 @@
 
 export const bookMeta = {
   shelfTitle: "Les Machines de l'Île",
-  leather: "#5a2f17",
+  leather: "#7d4019", // cuivre
   cover: { emblem: "elephant", corners: { tl: "gear", tr: "gear", bl: "elephant" } },
 
   coverKicker: "Histoire des",
