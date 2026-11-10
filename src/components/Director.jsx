@@ -76,11 +76,13 @@ export default function Director({ phase, spread, zoom, spreads, anim, leafState
   const isPopup = (i) => spreads[i]?.kind === 'popup'
   const poseFor = () =>
     isPopup(spread)
-      ? popupPose(size.width, size.height, !!zoom)
+      ? zoom === 'text'
+        ? pagePose(size.width, size.height, 'lefttext') // lire le texte de la planche
+        : popupPose(size.width, size.height, zoom === 'model')
       : zoom
         ? pagePose(size.width, size.height, zoom)
         : readingPose(size.width, size.height)
-  const modeFor = () => (isPopup(spread) ? 'popup' : zoom ? 'zoom' : 'reading')
+  const modeFor = () => (isPopup(spread) && zoom !== 'text' ? 'popup' : zoom ? 'zoom' : 'reading')
 
   // ── Transitions principales
   useEffect(() => {

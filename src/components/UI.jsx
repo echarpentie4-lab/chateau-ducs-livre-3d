@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { BookOpen, ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, X, Rotate3d, ZoomIn, ZoomOut, List, Sparkles, Image as ImageIcon, AlignLeft, Hand, Volume2, VolumeX, Languages } from 'lucide-react'
+import { BookOpen, ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, X, Rotate3d, ZoomIn, ZoomOut, List, Sparkles, Image as ImageIcon, AlignLeft, Hand, Volume2, VolumeX, Languages, Box } from 'lucide-react'
 import { PHASE } from '../state/bookMachine'
 import { roman } from '../three/canvasUtils'
 import { LANGS, ui } from '../i18n'
@@ -211,13 +211,19 @@ export default function UI({ state, catalogue, spreads, dispatch, lang, setLang 
           </nav>
 
           {/* gros plan : choix de la page + aide au déplacement */}
-          {zoom && current?.kind === 'chapter' && (
+          {zoom && current && (
             <div className="fade-up absolute inset-x-0 top-[4.75rem] md:top-24 flex flex-col items-center gap-2 px-3">
               <div role="group" aria-label={t.focusGroup} className="pointer-events-auto flex rounded-full border border-gold/50 bg-[#140b06]/85 p-1 backdrop-blur-sm">
-                {[
-                  ['image', t.illustration, ImageIcon],
-                  ['text', t.text, AlignLeft],
-                ].map(([side, label, Icon]) => (
+                {(current.kind === 'popup'
+                  ? [
+                      ['text', t.text, AlignLeft],
+                      ['model', t.model, Box],
+                    ]
+                  : [
+                      ['image', t.illustration, ImageIcon],
+                      ['text', t.text, AlignLeft],
+                    ]
+                ).map(([side, label, Icon]) => (
                   <button
                     key={side}
                     onClick={() => dispatch({ type: 'FOCUS', side })}
@@ -232,7 +238,7 @@ export default function UI({ state, catalogue, spreads, dispatch, lang, setLang 
                 ))}
               </div>
               <p className="flex items-center gap-2 rounded-full bg-[#140b06]/60 px-3 py-1 font-serif italic text-xs sm:text-sm text-gold-light/75">
-                <Hand size={14} /> {t.dragPage}<span className="hidden md:inline">{t.wheel}</span><span className="md:hidden">{t.pinch}</span>
+                <Hand size={14} /> {zoom === 'model' ? t.dragModel : t.dragPage}<span className="hidden md:inline">{t.wheel}</span><span className="md:hidden">{t.pinch}</span>
               </p>
             </div>
           )}

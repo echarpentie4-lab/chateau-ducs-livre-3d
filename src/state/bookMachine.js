@@ -42,13 +42,13 @@ export function createBookReducer(spreadCounts) {
         return turnTo(state, action.index)
       case 'CLOSE':
         return state.phase === PHASE.READING ? { ...state, phase: PHASE.CLOSING, zoom: false, info: false } : state
-      // zoom : false | 'text' (page de droite) | 'image' (page de gauche)
+      // zoom : false | 'text' (le texte) | 'image' (l'illustration) | 'model' (la maquette pop-up)
       case 'TOGGLE_ZOOM':
         return state.phase === PHASE.READING ? { ...state, zoom: state.zoom ? false : 'text', info: state.zoom ? false : state.info } : state
       case 'FOCUS':
         return state.phase === PHASE.READING ? { ...state, zoom: action.side } : state
       case 'INSPECT':
-        return state.phase === PHASE.READING ? { ...state, zoom: 'text', info: true } : state
+        return state.phase === PHASE.READING ? { ...state, zoom: 'model', info: true } : state
       case 'HIDE_INFO':
         return { ...state, info: false }
       case 'DONE':

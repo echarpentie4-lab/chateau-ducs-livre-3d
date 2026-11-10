@@ -422,17 +422,162 @@ function drawPopupLeft(ctx, spread, meta, folioN) {
   ctx.restore()
   const bodyTop = y + 50
   const end = drawBody(ctx, spread.content || '', x0 + 10, bodyTop, x1 - x0 - 20, PH - bodyTop - 250, { maxFs: 38, dropColor: meta.leather || RED })
+  // gravure du monument dans l'espace libre, sous le texte
+  const vTop = end + 30
+  const vBottom = PH - 270
+  if (vBottom - vTop > 170) {
+    const vw = Math.min(x1 - x0 - 80, (vBottom - vTop) * 1.5)
+    const vh = Math.min(vBottom - vTop, vw * 0.62)
+    const vx = cx - vw / 2
+    const vy = vTop + (vBottom - vTop - vh) / 2
+    drawEngraving(spread.model || 'castle', ctx, vx, vy, vw, vh, (spread.number || 3) + 11, INK, PAPER)
+    ctx.save()
+    ctx.strokeStyle = INK
+    ctx.lineWidth = 2
+    ctx.strokeRect(vx - 8, vy - 8, vw + 16, vh + 16)
+    ctx.lineWidth = 1
+    ctx.strokeRect(vx, vy, vw, vh)
+    ctx.restore()
+  }
   ctx.save()
   ctx.textAlign = 'center'
   ctx.fillStyle = RED
   ctx.font = `italic 28px ${FELL}`
   if (spread.hint) wrapSimple(ctx, `☞ ${spread.hint}`, x1 - x0 - 60).forEach((l, i) => ctx.fillText(l, cx, Math.max(end + 40, PH - 230) + i * 34))
   ctx.restore()
+  pageFrame(ctx, 'back')
   folio(ctx, 'back', folioN)
 }
 
+// Double filet d'encadrement et fleurons d'angle (planches pop-up).
+function pageFrame(ctx, side) {
+  const x0 = side === 'front' ? 120 : 70
+  const x1 = side === 'front' ? PW - 70 : PW - 120
+  const y0 = 140
+  const y1 = PH - 115
+  ctx.save()
+  ctx.strokeStyle = 'rgba(107,74,42,0.55)'
+  ctx.lineWidth = 2
+  ctx.strokeRect(x0, y0, x1 - x0, y1 - y0)
+  ctx.lineWidth = 1
+  ctx.strokeRect(x0 + 8, y0 + 8, x1 - x0 - 16, y1 - y0 - 16)
+  ctx.fillStyle = SEPIA
+  for (const [x, y] of [[x0, y0], [x1, y0], [x0, y1], [x1, y1]]) {
+    ctx.beginPath()
+    ctx.moveTo(x, y - 12)
+    ctx.lineTo(x + 12, y)
+    ctx.lineTo(x, y + 12)
+    ctx.lineTo(x - 12, y)
+    ctx.closePath()
+    ctx.fill()
+  }
+  ctx.restore()
+}
+
+// Rose des vents miniature.
+function compassRose(ctx, x, y, r) {
+  ctx.save()
+  ctx.strokeStyle = SEPIA
+  ctx.fillStyle = SEPIA
+  ctx.lineWidth = 1.2
+  ctx.beginPath()
+  ctx.arc(x, y, r, 0, Math.PI * 2)
+  ctx.stroke()
+  ctx.beginPath()
+  ctx.arc(x, y, r * 0.86, 0, Math.PI * 2)
+  ctx.stroke()
+  for (let k = 0; k < 8; k++) {
+    const a = (k * Math.PI) / 4 - Math.PI / 2
+    const len = k % 2 ? r * 0.55 : r * 1.15
+    ctx.beginPath()
+    ctx.moveTo(x + Math.cos(a) * len, y + Math.sin(a) * len)
+    ctx.lineTo(x + Math.cos(a + 0.42) * r * 0.16, y + Math.sin(a + 0.42) * r * 0.16)
+    ctx.lineTo(x + Math.cos(a - 0.42) * r * 0.16, y + Math.sin(a - 0.42) * r * 0.16)
+    ctx.closePath()
+    k % 2 ? ctx.stroke() : ctx.fill()
+  }
+  ctx.font = `700 24px ${DISPLAY}`
+  ctx.textAlign = 'center'
+  ctx.fillText('N', x, y - r * 1.25)
+  ctx.restore()
+}
+
+// Échelle graphique.
+function scaleBar(ctx, x, y, w, label) {
+  ctx.save()
+  ctx.strokeStyle = SEPIA
+  ctx.fillStyle = SEPIA
+  ctx.lineWidth = 1.5
+  ctx.strokeRect(x, y, w, 10)
+  for (let k = 0; k < 4; k += 2) ctx.fillRect(x + (k * w) / 4, y, w / 4, 10)
+  ctx.font = `italic 20px ${SERIF}`
+  ctx.textAlign = 'center'
+  ;['0', '10', '20', '30', '40'].forEach((t, k) => ctx.fillText(t, x + (k * w) / 4, y + 34))
+  ctx.fillText(label, x + w / 2, y + 58)
+  ctx.restore()
+}
+
+// Annotations à la plume : étiquette + trait de rappel vers le détail de la maquette.
+// p = point de la maquette (unités 3D, déjà à l'échelle), at = position de l'étiquette (px).
+const POPUP_NOTES = {
+  castle: [
+    ['logis', [0.08, -0.29], [250, 225]], ['crown', [0.15, -0.2], [850, 225]],
+    ['gouv', [0.31, -0.02], [940, 400]], ['well', [-0.08, 0.06], [190, 470]],
+    ['curtain', [-0.42, 0.18], [190, 1120]], ['bridge', [0.1, 0.42], [700, 1185]],
+  ],
+  lu: [
+    ['lutower', [0, 0.05], [330, 225]], ['dome', [0, 0.04], [820, 225]],
+    ['wings', [-0.34, 0.05], [200, 1080]], ['chimney', [0.24, -0.3], [930, 330]],
+  ],
+  cathedral: [
+    ['towers', [-0.23, 0.07], [230, 225]], ['window', [0, 0.07], [840, 225]],
+    ['nave', [0.08, -0.45], [930, 340]], ['portal', [0, 0.2], [230, 1170]],
+  ],
+  elephant: [
+    ['house', [-0.12, 0.07], [270, 225]], ['canopy', [-0.26, 0.16], [190, 330]],
+    ['ears', [0.13, 0.33], [880, 225]], ['trunk', [0.46, 0.35], [940, 1120]],
+    ['legs', [0.04, 0.27], [260, 1170]],
+  ],
+  passage: [
+    ['roof', [0.05, -0.1], [300, 210]], ['arch', [0, -0.5], [840, 210]],
+    ['balconies', [0.3, 0.1], [950, 1080]], ['stairs', [0, 0.05], [230, 1180]],
+    ['statues', [-0.15, 0.27], [700, 1215]],
+  ],
+}
+
+function annotate(ctx, model, notes) {
+  const list = POPUP_NOTES[model] || []
+  ctx.save()
+  ctx.strokeStyle = 'rgba(58,38,20,0.75)'
+  ctx.fillStyle = INK
+  ctx.lineWidth = 1.3
+  ctx.font = `italic 26px ${FELL}`
+  for (const [key, [mx, mz], [lx, ly]] of list) {
+    const label = notes?.[key]
+    if (!label) continue
+    const px = (0.72 + mx) * (PW / 1.4)
+    const py = (0.93 + mz) * (PH / 1.9)
+    const right = lx > PW / 2
+    ctx.textAlign = right ? 'right' : 'left'
+    const tw = ctx.measureText(label).width
+    ctx.fillText(label, lx, ly)
+    const sx = right ? lx - tw - 8 : lx + tw + 8
+    // trait de rappel courbe, terminé par un point
+    ctx.setLineDash([2, 4])
+    ctx.beginPath()
+    ctx.moveTo(right ? lx - tw / 2 : lx + tw / 2, ly + 10)
+    ctx.quadraticCurveTo(sx, (ly + py) / 2, px, py)
+    ctx.stroke()
+    ctx.setLineDash([])
+    ctx.beginPath()
+    ctx.arc(px, py, 4, 0, Math.PI * 2)
+    ctx.fill()
+  }
+  ctx.restore()
+}
+
 // Plan au sol sous la maquette : douves (château), canal (LU) ou parvis pavé (cathédrale).
-function drawPopupRight(ctx, folioN, model = 'castle', meta = {}) {
+function drawPopupRight(ctx, folioN, model = 'castle', meta = {}, spread = {}) {
   const lb = L(meta)
   const cx = PW / 2 + 20
   const cy = PH / 2 - 20
@@ -532,6 +677,22 @@ function drawPopupRight(ctx, folioN, model = 'castle', meta = {}) {
     ctx.fillText(lb.moat, cx, PH - 160)
   }
   ctx.restore()
+  // cartouche de titre, encadrement, rose des vents, échelle et annotations
+  ctx.save()
+  ctx.textAlign = 'center'
+  ctx.fillStyle = RED
+  ctx.font = `600 22px ${DISPLAY}`
+  setSpacing(ctx, 8)
+  ctx.fillText(String(lb.foldout).toUpperCase(), cx, 112)
+  setSpacing(ctx, 0)
+  ctx.fillStyle = SEPIA
+  ctx.font = `italic 28px ${FELL}`
+  ctx.fillText(spread.title || '', cx, 150 + 18)
+  ctx.restore()
+  pageFrame(ctx, 'front')
+  compassRose(ctx, PW - 190, PH - 260, 46)
+  scaleBar(ctx, 170, PH - 300, 240, lb.notes?.metres || 'mètres')
+  annotate(ctx, model, lb.notes)
   folio(ctx, 'front', folioN)
 }
 
@@ -576,7 +737,7 @@ export function createPage(def, side, spreads, meta) {
     const folioL = (def.idx ?? 0) * 2 + 2
     if (def.kind === 'title') drawTitlePage(ctx, meta, img)
     else if (def.kind === 'left') s.kind === 'popup' ? drawPopupLeft(ctx, s, meta, folioL) : drawChapterLeft(ctx, s, img, meta, folioL)
-    else if (def.kind === 'right') s.kind === 'popup' ? drawPopupRight(ctx, folioL + 1, s.model, meta) : drawChapterRight(ctx, s, folioL + 1, meta)
+    else if (def.kind === 'right') s.kind === 'popup' ? drawPopupRight(ctx, folioL + 1, s.model, meta, s) : drawChapterRight(ctx, s, folioL + 1, meta)
     else drawColophon(ctx)
     texture.needsUpdate = true
   }

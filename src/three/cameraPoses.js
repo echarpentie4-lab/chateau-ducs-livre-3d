@@ -44,8 +44,10 @@ export const pagePose = (w, h, side = 'text') => {
   const visible = 2 * d * T * Math.max(0.5, 1 - (UI_TOP_ZOOM + UI_BOTTOM) / h)
   const shift = (((UI_BOTTOM - UI_TOP_ZOOM) / 2) / h) * 2 * d * T
   // texte : on commence en haut de la page ; illustration : centrée sur l'image (moitié basse)
+  // 'image' : illustration (page de gauche, centrée) · 'text' : texte (page de droite, en haut)
+  // 'lefttext' : texte de la page de gauche (planches pop-up), en haut
   const z = visible >= PAGE_H + 0.1 ? 0 : side === 'image' ? Math.min(0.2, PAGE_H / 2 - visible / 2) : -PAGE_H / 2 + visible / 2 - 0.04
-  const x = side === 'image' ? -PAGE_W / 2 - 0.02 : PAGE_W / 2 + 0.02
+  const x = side === 'text' ? PAGE_W / 2 + 0.02 : -PAGE_W / 2 - 0.02
   const target = { x, y: BOOK_Y + 0.22, z: z + shift }
   const tilt = 0.04
   return { pos: { x, y: target.y + d * Math.cos(tilt), z: target.z + d * Math.sin(tilt) }, target }
