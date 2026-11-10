@@ -227,7 +227,27 @@ function centeredTitle(ctx, text, cx, y, maxW, startFs) {
 }
 
 // ───────────────────────── Pages ─────────────────────────
-function drawTitlePage(ctx, meta) {
+// Boîte englobante du dessin (pixels non blancs) d'une image sur fond blanc.
+function trimWhite(img) {
+  const [c, ctx] = makeCanvas(img.width, img.height)
+  ctx.drawImage(img, 0, 0)
+  const d = ctx.getImageData(0, 0, img.width, img.height).data
+  let x0 = img.width, y0 = img.height, x1 = 0, y1 = 0
+  for (let y = 0; y < img.height; y++)
+    for (let x = 0; x < img.width; x++) {
+      const i = (y * img.width + x) * 4
+      if (d[i + 3] > 20 && d[i] + d[i + 1] + d[i + 2] < 660) {
+        if (x < x0) x0 = x
+        if (x > x1) x1 = x
+        if (y < y0) y0 = y
+        if (y > y1) y1 = y
+      }
+    }
+  c.width = 0
+  return x1 > x0 && y1 > y0 ? [x0, y0, x1 - x0 + 1, y1 - y0 + 1] : [0, 0, img.width, img.height]
+}
+
+function drawTitlePage(ctx, meta, img) {
   const { x0, x1 } = area('front')
   const cx = (x0 + x1) / 2
   ctx.save()
@@ -240,26 +260,36 @@ function drawTitlePage(ctx, meta) {
   ctx.fillStyle = SEPIA
   ctx.font = `600 24px ${DISPLAY}`
   setSpacing(ctx, 8)
-  ctx.fillText(meta.titlePageHeading.toUpperCase(), cx, 210)
+  ctx.fillText(meta.titlePageHeading.toUpperCase(), cx, 190)
   setSpacing(ctx, 0)
-  ornament(ctx, cx, 245, 180)
-  let y = centeredTitle(ctx, meta.titlePageTitle, cx, 285, x1 - x0 - 40, 80)
+  ornament(ctx, cx, 222, 180)
+  let y = centeredTitle(ctx, meta.titlePageTitle, cx, 250, x1 - x0 - 40, 72)
   ctx.fillStyle = RED
-  ctx.font = `italic 36px ${FELL}`
-  y += 16
+  ctx.font = `italic 32px ${FELL}`
+  y += 10
   for (const l of wrapSimple(ctx, meta.titlePageSubtitle, x1 - x0 - 80)) {
     ctx.fillText(l, cx, y)
-    y += 46
+    y += 42
   }
-  ornament(ctx, cx, y + 20, 140)
-  const bw = (x1 - x0) * 0.78
-  const bh = Math.min(PH - 330 - (y + 60), bw * 0.7)
-  const bx = cx - bw / 2
-  const by = y + 60
-  drawEngraving('castle', ctx, bx, by, bw, bh, 4, INK, PAPER)
-  ctx.strokeStyle = INK
-  ctx.lineWidth = 2
-  ctx.strokeRect(bx, by, bw, bh)
+  // grand croquis du château : occupe tout l'espace restant
+  const top = y + 20
+  const bottom = PH - 220
+  const maxW = x1 - x0 + 20
+  const maxH = bottom - top
+  if (img) {
+    const [sx, sy, sw, sh] = trimWhite(img) // on retire les marges blanches du croquis
+    const ar = sw / sh
+    const w = Math.min(maxW, maxH * ar)
+    const h = w / ar
+    ctx.globalCompositeOperation = 'multiply' // le blanc du dessin devient parchemin
+    ctx.globalAlpha = 0.92
+    ctx.drawImage(img, sx, sy, sw, sh, cx - w / 2, top + (maxH - h) / 2, w, h)
+    ctx.globalAlpha = 1
+    ctx.globalCompositeOperation = 'source-over'
+  } else {
+    const h = Math.min(maxH, maxW * 0.75)
+    drawEngraving('castle', ctx, cx - maxW / 2, top + (maxH - h) / 2, maxW, h, 4, INK, PAPER)
+  }
   ctx.fillStyle = SEPIA
   ctx.font = `600 22px ${DISPLAY}`
   setSpacing(ctx, 5)
@@ -457,7 +487,7 @@ export function createPage(def, side, spreads, meta) {
     paintParchment(ctx, side, (def.idx ?? 0) * 2 + (side === 'front' ? 1 : 2))
     const s = spreads[def.idx]
     const folioL = (def.idx ?? 0) * 2 + 2
-    if (def.kind === 'title') drawTitlePage(ctx, meta)
+    if (def.kind === 'title') drawTitlePage(ctx, meta, img)
     else if (def.kind === 'left') s.kind === 'popup' ? drawPopupLeft(ctx, s, meta, folioL) : drawChapterLeft(ctx, s, img, meta, folioL)
     else if (def.kind === 'right') s.kind === 'popup' ? drawPopupRight(ctx, folioL + 1) : drawChapterRight(ctx, s, folioL + 1)
     else drawColophon(ctx)

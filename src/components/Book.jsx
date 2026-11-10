@@ -95,20 +95,24 @@ export default function Book({ anim, leafStates, popAnim, spreads, meta, onInspe
   // Chargement asynchrone des illustrations → repeint la page concernée.
   useEffect(() => {
     let alive = true
+    const load = (url, page) => {
+      const img = new Image()
+      if (/^https?:/.test(url)) img.crossOrigin = 'anonymous'
+      img.onload = () => alive && page.paint(img)
+      img.src = url
+    }
+    const titleUrl = cleanUrl(meta.titlePageImage)
+    if (titleUrl) load(titleUrl, pages[0].front)
     pages.forEach(({ def, back }) => {
       if (def.back.kind !== 'left') return
       const s = spreads[def.back.idx]
       const url = s.kind === 'chapter' && cleanUrl(s.illustration)
-      if (!url) return
-      const img = new Image()
-      if (/^https?:/.test(url)) img.crossOrigin = 'anonymous'
-      img.onload = () => alive && back.paint(img)
-      img.src = url
+      if (url) load(url, back)
     })
     return () => {
       alive = false
     }
-  }, [pages, spreads])
+  }, [pages, spreads, meta])
 
   useFrame(({ clock }) => {
     const { open, lift, bump } = anim
@@ -135,9 +139,10 @@ export default function Book({ anim, leafStates, popAnim, spreads, meta, onInspe
     for (const l of leafStates) turned += l.p
     const frac = turned / count
     shape.hR = BLOCK_T * (1 - frac)
-    shape.hL = BLOCK_T * frac
+    // le bloc de gauche n'existe qu'une fois la couverture posée à plat (sinon il flotterait dans le vide)
+    shape.hL = BLOCK_T * frac * smoothstep(0.9, 1, open)
     shape.dip = s
-    const key = `${shape.hR.toFixed(5)}|${s.toFixed(4)}`
+    const key = `${shape.hR.toFixed(5)}|${shape.hL.toFixed(5)}|${s.toFixed(4)}`
     if (key !== shape.key) {
       shape.key = key
       shape.version++

@@ -40,6 +40,8 @@ export const bookMeta = {
   titlePageTitle: "Le Château des Ducs de Bretagne",
   titlePageSubtitle: "Mille ans d'histoire au bord de la Loire",
   titlePageImprint: "À Nantes, chez l'Archiviste du Château",
+  // Grand croquis du château sur la page de titre ("" = gravure dessinée automatiquement)
+  titlePageImage: "/images/croquis-chateau.png",
 
   // Petit titre courant en haut des pages de gauche
   runningHead: "Le Château des Ducs de Bretagne",
@@ -69,9 +71,9 @@ export const chaptersData = [
     title: "Les Vikings",
     subtitle: "843 – 937",
     content: `En l'an 843, des navires étranges remontent la Loire : ce sont les drakkars des Vikings, des guerriers venus du Nord de l'Europe. Ils attaquent Nantes par surprise, pillent la ville et s'en prennent même aux habitants réfugiés dans la cathédrale. Pendant presque cent ans, les Vikings reviennent régulièrement et finissent même par s'installer dans la région. Les Nantais vivent dans la peur. Puis arrive un chef breton courageux, Alain Barbetorte, qui avait grandi en exil en Angleterre. En 937, il revient en Bretagne et chasse les Vikings de Nantes. On raconte qu'il dut se frayer un chemin à travers les ronces pour atteindre la cathédrale abandonnée. Il fait de Nantes sa capitale et renforce les défenses de la ville, surtout du côté du fleuve, d'où sont toujours venus les dangers.`,
-    illustration: "/images/vikings-drakkar.png",
+    illustration: "/images/vikings-debarquement.webp",
     engraving: "drakkar", // gravure affichée pendant le chargement de l'image
-    caption: "Les drakkars des Vikings remontent le fleuve",
+    caption: "Les Vikings tirent leurs drakkars sur la rive",
   },
 
   // ─────────────────────────── PAGE 3 ───────────────────────────
@@ -135,9 +137,9 @@ export const chaptersData = [
     title: "La Bretagne devient française",
     subtitle: "1532 – 1598",
     content: `Après la mort d'Anne, sa fille Claude épouse le futur roi François Ier. La Bretagne n'a plus de duc à elle. En 1532, elle s'unit officiellement à la France, en gardant certains droits particuliers. Le château n'appartient plus aux ducs, mais au roi, qui y place un gouverneur. Quelques années plus tard, la France est déchirée par les guerres de Religion entre catholiques et protestants. Le gouverneur de Bretagne, le duc de Mercœur, refuse d'obéir au roi Henri IV. Il transforme le château en citadelle et ajoute de grands bastions, des murs en forme de pointe qui résistent mieux aux boulets de canon. En 1598, Mercœur se soumet enfin, et Henri IV vient à Nantes. Impressionné par les murailles, il se serait écrié : « Les ducs de Bretagne n'étaient pas de petits compagnons ! » Cette année-là, il signe à Nantes l'édit de Nantes, qui ramène la paix entre catholiques et protestants.`,
-    illustration: "/images/armes-france-bretagne.png",
+    illustration: "/images/blason-bretagne-nantaise.webp",
     engraving: "union",
-    caption: "Les armes de France et de Bretagne réunies",
+    caption: "Les armes de France et de Bretagne réunies sous la couronne",
   },
 
   // ─────────────────────────── PAGE 8 ───────────────────────────
