@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { BookOpen, ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, X, Rotate3d, ZoomIn, ZoomOut, List, Sparkles, Image as ImageIcon, AlignLeft, Hand, Volume2, VolumeX, Languages, Box } from 'lucide-react'
+import { BookOpen, ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, X, Rotate3d, ZoomIn, ZoomOut, List, Sparkles, Image as ImageIcon, AlignLeft, Hand, Volume2, VolumeX, Languages, Box, Eye } from 'lucide-react'
 import { PHASE } from '../state/bookMachine'
 import { roman } from '../three/canvasUtils'
 import { LANGS, ui } from '../i18n'
@@ -174,7 +174,7 @@ export default function UI({ state, catalogue, spreads, dispatch, lang, setLang 
               <List size={15} /> <span className="hidden sm:inline">{t.toc}</span>
             </button>
             <button className={smallBtn} onClick={() => dispatch({ type: 'TOGGLE_ZOOM' })} disabled={busy} aria-pressed={!!zoom}>
-              {zoom ? <ZoomOut size={15} /> : <ZoomIn size={15} />}
+              {zoom ? <ZoomOut size={15} /> : <Eye size={15} />}
               <span className="hidden sm:inline">{zoom ? t.zoomOut : t.zoomIn}</span>
             </button>
             <button className={smallBtn} onClick={() => dispatch({ type: 'CLOSE' })} disabled={busy}>

@@ -125,7 +125,9 @@ export default function Book({ bookId, anim, leafStates, popAnim, spreads, meta,
     const frac = turned / count
     shape.hR = BLOCK_T * (1 - frac)
     // le bloc de gauche n'existe qu'une fois la couverture posée à plat (sinon il flotterait dans le vide)
-    shape.hL = BLOCK_T * frac * smoothstep(0.9, 1, open)
+    // dès que la page de titre (feuillet 0) se soulève, il n'y a plus rien sous elle :
+    // le bloc de gauche disparaît, sinon on verrait son dessus blanc pendant la fermeture
+    shape.hL = BLOCK_T * frac * smoothstep(0.9, 1, open) * smoothstep(0.85, 1, leafStates[0].p)
     shape.dip = s
     const key = `${shape.hR.toFixed(5)}|${shape.hL.toFixed(5)}|${s.toFixed(4)}`
     if (key !== shape.key) {
