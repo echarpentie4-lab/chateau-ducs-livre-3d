@@ -215,7 +215,7 @@ export default function CastleModel({ variant = 'stone', progress = null, onInsp
         roof === 'cone'
           ? new THREE.ConeGeometry(r * 1.25, h * 0.75, 10).translate(0, h + 0.027 + h * 0.375, 0)
           : new THREE.CylinderGeometry(r * 1.2, r * 1.2, 0.03, 10, 1, true).translate(0, h + 0.04, 0)
-      return { x, z, body, ring, cap, roof }
+      return { x, z, r, h, body, ring, cap, roof }
     })
     const buildings = BUILDINGS.map((b) => {
       const body = new THREE.BoxGeometry(b.w, b.h, b.d)
@@ -226,7 +226,26 @@ export default function CastleModel({ variant = 'stone', progress = null, onInsp
     const gate = new THREE.BoxGeometry(0.11, 0.17, 0.07).translate(0, 0.085, 0)
     const door = new THREE.BoxGeometry(0.045, 0.07, 0.01).translate(0, 0.035, 0)
     const bridge = new THREE.BoxGeometry(0.06, 0.012, 0.2).translate(0, 0.006, 0.1)
-    return { walls, towers, buildings, gate, door, bridge }
+    // détails : meurtrières, mâchicoulis, merlons, épis de faîtage, fenêtres à croisée,
+    // cheminées, tour de la Couronne d'Or et puits à couronne de fer forgé
+    const detail = {
+      slit: new THREE.BoxGeometry(0.008, 0.036, 0.006),
+      corbel: new THREE.BoxGeometry(0.012, 0.014, 0.016),
+      merlon: new THREE.BoxGeometry(0.018, 0.022, 0.012),
+      finial: new THREE.ConeGeometry(0.006, 0.045, 6).translate(0, 0.0225, 0),
+      window: new THREE.BoxGeometry(0.022, 0.034, 0.004),
+      mullionV: new THREE.BoxGeometry(0.003, 0.034, 0.003),
+      mullionH: new THREE.BoxGeometry(0.022, 0.003, 0.003),
+      chimney: new THREE.BoxGeometry(0.022, 0.09, 0.032),
+      pinnacle: new THREE.ConeGeometry(0.006, 0.03, 4).translate(0, 0.015, 0),
+      crownTower: new THREE.CylinderGeometry(0.032, 0.034, 0.27, 8).translate(0, 0.135, 0),
+      crownLoggia: new THREE.BoxGeometry(0.016, 0.03, 0.004),
+      crownRoof: new THREE.ConeGeometry(0.042, 0.08, 8).translate(0, 0.04, 0),
+      wellRim: new THREE.CylinderGeometry(0.03, 0.032, 0.03, 12).translate(0, 0.015, 0),
+      wellPost: new THREE.CylinderGeometry(0.003, 0.003, 0.07, 4).translate(0, 0.035, 0),
+      wellCrown: new THREE.TorusGeometry(0.026, 0.003, 4, 16, Math.PI),
+    }
+    return { walls, towers, buildings, gate, door, bridge, detail }
   }, [paper])
 
 
@@ -251,6 +270,28 @@ export default function CastleModel({ variant = 'stone', progress = null, onInsp
             <Part geometry={t.body} material={m.tower} paper={paper} />
             <Part geometry={t.ring} material={m.tower} paper={paper} />
             <Part geometry={t.cap} material={t.roof === 'cone' ? m.roof : m.tower} paper={paper} />
+            {[0.4, 2.5, 4.6].map((a) => (
+              <Part key={`s${a}`} geometry={geo.detail.slit} material={m.dark} paper={false}
+                position={[Math.sin(a) * t.r * 1.01, t.h * 0.45, Math.cos(a) * t.r * 1.01]} rotation={[0, a, 0]} />
+            ))}
+            {Array.from({ length: 10 }, (_, k) => {
+              const a = (k / 10) * Math.PI * 2
+              return (
+                <Part key={`c${k}`} geometry={geo.detail.corbel} material={m.tower} paper={false}
+                  position={[Math.sin(a) * t.r * 1.08, t.h - 0.008, Math.cos(a) * t.r * 1.08]} rotation={[0, a, 0]} />
+              )
+            })}
+            {t.roof === 'cone' ? (
+              <Part geometry={geo.detail.finial} material={m.roof} paper={false} position={[0, t.h + 0.027 + t.h * 0.75, 0]} />
+            ) : (
+              Array.from({ length: 8 }, (_, k) => {
+                const a = (k / 8) * Math.PI * 2
+                return (
+                  <Part key={`m${k}`} geometry={geo.detail.merlon} material={m.tower} paper={paper}
+                    position={[Math.sin(a) * t.r * 1.12, t.h + 0.065, Math.cos(a) * t.r * 1.12]} rotation={[0, a, 0]} />
+                )
+              })
+            )}
           </group>
         </group>
       ))}
@@ -262,20 +303,53 @@ export default function CastleModel({ variant = 'stone', progress = null, onInsp
               <group position={[0, 0, b.d / 2]}>
                 <Part geometry={b.body} material={m.building} paper={paper} />
                 <Part geometry={b.roof} material={m.roof} paper={paper} />
-                {Array.from({ length: b.dormers }, (_, k) => (
-                  <Part
-                    key={k}
-                    geometry={dormerGeometry}
-                    material={m.building}
-                    paper={paper}
-                    position={[-b.w / 2 + (b.w * (k + 0.5)) / b.dormers, b.h - 0.01, b.d / 2 - 0.008]}
-                  />
+                {Array.from({ length: b.dormers }, (_, k) => {
+                  const dx = -b.w / 2 + (b.w * (k + 0.5)) / b.dormers
+                  return (
+                    <group key={k}>
+                      <Part geometry={dormerGeometry} material={m.building} paper={paper} position={[dx, b.h - 0.01, b.d / 2 - 0.008]} />
+                      <Part geometry={geo.detail.pinnacle} material={m.roof} paper={false} position={[dx, b.h + 0.08, b.d / 2 + 0.002]} />
+                      {/* deux étages de fenêtres à croisée de pierre */}
+                      {[0.32, 0.68].map((fy) => (
+                        <group key={fy} position={[dx, b.h * fy, b.d / 2 + 0.002]}>
+                          <Part geometry={geo.detail.window} material={m.dark} paper={false} />
+                          <Part geometry={geo.detail.mullionV} material={m.building} paper={false} position={[0, 0, 0.003]} />
+                          <Part geometry={geo.detail.mullionH} material={m.building} paper={false} position={[0, 0.004, 0.003]} />
+                        </group>
+                      ))}
+                    </group>
+                  )
+                })}
+                {[-0.32, 0.32].map((f) => (
+                  <Part key={f} geometry={geo.detail.chimney} material={m.building} paper={paper} position={[b.w * f, b.h + b.rh * 0.55, -b.d * 0.15]} />
                 ))}
+                {i === 0 && (
+                  /* tour de la Couronne d'Or : escalier hors-œuvre à loggias */
+                  <group position={[b.w * 0.12, 0, b.d / 2 + 0.03]}>
+                    <Part geometry={geo.detail.crownTower} material={m.building} paper={paper} />
+                    {[0.08, 0.15, 0.22].map((y) => (
+                      <Part key={y} geometry={geo.detail.crownLoggia} material={m.dark} paper={false} position={[0, y, 0.033]} />
+                    ))}
+                    <Part geometry={geo.detail.crownRoof} material={m.roof} paper={paper} position={[0, 0.27, 0]} />
+                  </group>
+                )}
               </group>
             </group>
           </group>
         </group>
       ))}
+      {/* le puits de la cour et sa couronne de fer forgé */}
+      <group position={[-0.08, 0, 0.06]}>
+        <group ref={reg('well', 'tower', 0.62)}>
+          <Part geometry={geo.detail.wellRim} material={m.wall} paper={paper} />
+          {[0, Math.PI / 2, Math.PI, Math.PI * 1.5].map((a) => (
+            <Part key={a} geometry={geo.detail.wellPost} material={m.dark} paper={false} position={[Math.sin(a) * 0.024, 0.03, Math.cos(a) * 0.024]} />
+          ))}
+          {[0, Math.PI / 2].map((a) => (
+            <Part key={`k${a}`} geometry={geo.detail.wellCrown} material={m.dark} paper={false} position={[0, 0.1, 0]} rotation={[0, a, 0]} />
+          ))}
+        </group>
+      </group>
       <group position={[gateX, 0, gateZ]} rotation={[0, gateA + Math.PI, 0]}>
         <group ref={reg('gate', 'tower', 0.55)}>
           <Part geometry={geo.gate} material={m.building} paper={paper} />

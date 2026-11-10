@@ -2,7 +2,21 @@ import { useEffect, useMemo, useReducer, useState } from 'react'
 import Scene from './components/Scene'
 import UI from './components/UI'
 import { catalogue } from './data/catalogue'
-import { createBookReducer, initialBookState, buildSpreads } from './state/bookMachine'
+import { createBookReducer, initialBookState, buildSpreads, PHASE } from './state/bookMachine'
+import { LANGS, localizeBook, ui } from './i18n'
+import * as sound from './audio/sound'
+
+// Langue initiale : choix mémorisé, sinon langue du navigateur, sinon français.
+function initialLang() {
+  try {
+    const saved = localStorage.getItem('lang')
+    if (LANGS.some((l) => l.code === saved)) return saved
+  } catch {
+    /* stockage indisponible */
+  }
+  const nav = (navigator.language || 'fr').slice(0, 2)
+  return LANGS.some((l) => l.code === nav) ? nav : 'fr'
+}
 
 const FONTS = [
   '600 40px Cinzel',
@@ -32,10 +46,38 @@ function useFontsReady() {
 }
 
 export default function App() {
-  const spreadsByBook = useMemo(() => catalogue.map((b) => buildSpreads(b.chapters)), [])
-  const reducer = useMemo(() => createBookReducer(spreadsByBook.map((s) => s.length)), [spreadsByBook])
+  const [lang, setLangState] = useState(initialLang)
+  const books = useMemo(() => catalogue.map((b) => localizeBook(b, lang)), [lang])
+  const spreadsByBook = useMemo(() => books.map((b) => buildSpreads(b.chapters)), [books])
+  // le nombre de pages est le même dans toutes les langues
+  const reducer = useMemo(() => createBookReducer(catalogue.map((b) => buildSpreads(b.chapters).length)), [])
   const [state, dispatch] = useReducer(reducer, initialBookState)
   const fontsReady = useFontsReady()
+
+  const setLang = (code) => {
+    if (state.phase !== PHASE.CLOSED) return
+    setLangState(code)
+    document.documentElement.lang = code
+    try {
+      localStorage.setItem('lang', code)
+    } catch {
+      /* stockage indisponible */
+    }
+  }
+  useEffect(() => {
+    document.documentElement.lang = lang
+  }, [lang])
+
+  // le son se débloque à la première interaction (règle des navigateurs)
+  useEffect(() => {
+    const go = () => sound.unlock()
+    window.addEventListener('pointerdown', go)
+    window.addEventListener('keydown', go)
+    return () => {
+      window.removeEventListener('pointerdown', go)
+      window.removeEventListener('keydown', go)
+    }
+  }, [])
 
   useEffect(() => {
     const onKey = (e) => {
@@ -54,15 +96,15 @@ export default function App() {
       {fontsReady ? (
         <>
           <div className="absolute inset-0">
-            <Scene state={state} dispatch={dispatch} catalogue={catalogue} spreadsByBook={spreadsByBook} />
+            <Scene state={state} dispatch={dispatch} catalogue={books} spreadsByBook={spreadsByBook} />
           </div>
           <div className="vignette pointer-events-none absolute inset-0" />
           <div className="grain pointer-events-none absolute inset-0" />
-          <UI state={state} catalogue={catalogue} spreads={spreadsByBook[state.openBook ?? state.book]} dispatch={dispatch} />
+          <UI state={state} catalogue={books} spreads={spreadsByBook[state.openBook ?? state.book]} dispatch={dispatch} lang={lang} setLang={setLang} />
         </>
       ) : (
         <div className="grid h-full place-items-center">
-          <p className="animate-pulse font-serif italic text-xl text-gold-light/70">Ouverture des archives…</p>
+          <p className="animate-pulse font-serif italic text-xl text-gold-light/70">{ui(lang).loading}</p>
         </div>
       )}
     </main>

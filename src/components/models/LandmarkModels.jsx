@@ -123,6 +123,12 @@ export function LuTowerModel({ progress, onInspect, ...props }) {
       spire: new THREE.ConeGeometry(0.008, 0.14, 6).translate(0, 0.07, 0),
       chimney: new THREE.CylinderGeometry(0.02, 0.03, 0.6, 10).translate(0, 0.3, 0),
       door: box(0.06, 0.1, 0.006, 0),
+      baluster: new THREE.CylinderGeometry(0.004, 0.004, 0.022, 5).translate(0, 0.011, 0),
+      domeRib: new THREE.TorusGeometry(0.12, 0.0035, 4, 16, Math.PI / 2).scale(1, 1.45, 1),
+      wingCornice: box(0.38, 0.014, 0.28),
+      dormer: box(0.035, 0.04, 0.03),
+      dormerRoof: roofGeometry(0.035, 0.03, 0.025),
+      pilasterW: box(0.012, 0.22, 0.006, 0),
     }
   }, [])
 
@@ -132,6 +138,16 @@ export function LuTowerModel({ progress, onInspect, ...props }) {
         <group position={[0, 0, 0.13]}>
           <Part geometry={g.wing} material={m.brick} paper />
           <Part geometry={g.wingRoof} material={m.kraft} paper />
+          <Part geometry={g.wingCornice} material={m.cream} paper position={[0, 0.233, 0]} />
+          {[-0.1, 0.1].map((x) => (
+            <group key={`d${x}`} position={[x, 0.255, 0.07]}>
+              <Part geometry={g.dormer} material={m.cream} paper />
+              <Part geometry={g.dormerRoof} material={m.kraft} paper={false} position={[0, 0.04, 0]} />
+            </group>
+          ))}
+          {[-0.17, -0.0975, -0.0325, 0.0325, 0.0975, 0.17].map((x) => (
+            <Part key={`p${x}`} geometry={g.pilasterW} material={m.cream} paper={false} position={[x, 0.01, 0.132]} />
+          ))}
           {[0.05, 0.12].map((y) =>
             [-0.13, -0.065, 0, 0.065, 0.13].map((x) => (
               <Part key={`${x}${y}`} geometry={g.win} material={m.dark} paper={false} position={[x, y, 0.131]} />
@@ -170,6 +186,13 @@ export function LuTowerModel({ progress, onInspect, ...props }) {
         <group ref={reg('dome', 'tower', 0.42)}>
           <Part geometry={g.drum} material={m.cream} paper />
           <Part geometry={g.ring} material={m.white} paper position={[0, 0.09, 0]} />
+          {Array.from({ length: 20 }, (_, k) => {
+            const a = (k / 20) * Math.PI * 2
+            return <Part key={`b${k}`} geometry={g.baluster} material={m.white} paper={false} position={[Math.sin(a) * 0.125, 0.09, Math.cos(a) * 0.125]} />
+          })}
+          {[0, 1, 2, 3].map((k) => (
+            <Part key={`r${k}`} geometry={g.domeRib} material={m.gold} paper={false} position={[0, 0.09, 0]} rotation={[0, (k * Math.PI) / 2 + Math.PI / 4, 0]} />
+          ))}
           <Part geometry={g.dome} material={m.white} paper position={[0, 0.09, 0]} />
           {[0, 1, 2, 3].map((k) => {
             const a = (k * Math.PI) / 2
@@ -246,6 +269,10 @@ export function CathedralModel({ progress, onInspect, ...props }) {
       portalGable: flat(triangle(0.17, 0.13), 0.008),
       tympan: new THREE.CircleGeometry(0.03, 14),
       gallery: box(0.62, 0.014, 0.05),
+      quatrefoil: new THREE.TorusGeometry(0.009, 0.0025, 4, 10),
+      saint: new THREE.CylinderGeometry(0.006, 0.009, 0.05, 6).translate(0, 0.025, 0),
+      saintHead: new THREE.SphereGeometry(0.0065, 6, 5),
+      niche: flat(lancet(0.022, 0.07), 0.004),
       step: (w, d) => box(w, 0.012, d),
     }),
     [],
@@ -268,6 +295,9 @@ export function CathedralModel({ progress, onInspect, ...props }) {
           <Part key={bx} geometry={g.belfry} material={m.dark} paper={false} position={[bx, 0.57, 0.091]} />
         ))}
         <Part geometry={g.towerWin} material={m.dark} paper={false} position={[0, 0.38, 0.091]} />
+        {[-0.045, 0.045].map((nx) => (
+          <Part key={`n${nx}`} geometry={g.niche} material={m.cream} paper={false} position={[nx, 0.2, 0.091]} />
+        ))}
         <Part geometry={g.sidePortal} material={m.dark} paper={false} position={[0, 0, 0.116]} />
         <Part geometry={g.sideRing} material={m.ochre} paper position={[0, 0, 0.114]} />
         <Part geometry={g.sideGable} material={m.ochre} paper position={[0, 0.17, 0.114]} />
@@ -330,6 +360,12 @@ export function CathedralModel({ progress, onInspect, ...props }) {
             <Part geometry={g.portalRing} material={m.ochre} paper position={[0, 0, 0.025]} />
             <Part geometry={g.portalGable} material={m.ochre} paper position={[0, 0.235, 0.024]} />
             <Part geometry={g.tympan} material={m.kraft} paper={false} position={[0, 0.15, 0.031]} />
+            {[-0.07, -0.055, 0.055, 0.07].map((x) => (
+              <group key={x} position={[x, 0.03, 0.028]}>
+                <Part geometry={g.saint} material={m.ivory} paper={false} />
+                <Part geometry={g.saintHead} material={m.ivory} paper={false} position={[0, 0.056, 0]} />
+              </group>
+            ))}
           </group>
         </group>
       </group>
@@ -338,6 +374,9 @@ export function CathedralModel({ progress, onInspect, ...props }) {
       <group position={[0, 0, 0.17]}>
         <group ref={reg('gallery', 'tower', 0.68)}>
           <Part geometry={g.gallery} material={m.white} paper position={[0, 0.265, 0]} />
+          {Array.from({ length: 24 }, (_, k) => (
+            <Part key={k} geometry={g.quatrefoil} material={m.cream} paper={false} position={[-0.29 + k * 0.025, 0.285, 0.026]} />
+          ))}
         </group>
       </group>
       <group position={[0, 0, 0.2]}>
@@ -411,6 +450,12 @@ export function ElephantModel({ progress, onInspect, ...props }) {
       mast: new THREE.CylinderGeometry(0.006, 0.006, 0.2, 6).translate(0, 0.1, 0),
       canopy: flat(canopy, 0.004),
       ribV: box(0.005, 0.25, 0.004, 0),
+      band: new THREE.TorusGeometry(1, 0.012, 4, 24).rotateY(Math.PI / 2),
+      rivet: new THREE.SphereGeometry(0.006, 5, 4),
+      lampPost: new THREE.CylinderGeometry(0.003, 0.003, 0.08, 4).translate(0, 0.04, 0),
+      lamp: new THREE.SphereGeometry(0.011, 8, 6),
+      rider: new THREE.CylinderGeometry(0.009, 0.011, 0.04, 6).translate(0, 0.02, 0),
+      riderHead: new THREE.SphereGeometry(0.008, 6, 5),
     }
   }, [])
 
@@ -436,13 +481,22 @@ export function ElephantModel({ progress, onInspect, ...props }) {
       <group ref={reg('body', 'tower', 0.25)}>
         <Part geometry={g.body} material={m.ochre} paper />
         <Part geometry={g.plates} material={m.wood} paper />
+        {[-0.18, -0.06, 0.06, 0.18].map((x) => {
+          const k = Math.sqrt(Math.max(0.05, 1 - (x / 0.32) ** 2))
+          return <Part key={x} geometry={g.band} material={m.kraft} paper={false} position={[x, 0.45, 0]} scale={[1, 0.225 * k, 0.205 * k]} />
+        })}
         <Part geometry={g.head} material={m.ochre} paper />
         <Part geometry={g.brow} material={m.wood} paper />
         {[0.1, -0.1].map((z) => (
           <Part key={z} geometry={g.eye} material={m.dark} paper={false} position={[0.43, 0.58, z * 0.8]} />
         ))}
         {[1, -1].map((s) => (
-          <Part key={s} geometry={g.ear} material={m.rose} paper position={[0.3, 0.6, s * 0.135]} rotation={[0, s * 0.5, 0]} />
+          <group key={s} position={[0.3, 0.6, s * 0.135]} rotation={[0, s * 0.5, 0]}>
+            <Part geometry={g.ear} material={m.rose} paper />
+            {[[-0.05, 0.05], [-0.1, -0.02], [-0.06, -0.1], [-0.01, -0.06]].map(([rx, ry]) => (
+              <Part key={`${rx}${ry}`} geometry={g.rivet} material={m.gold} paper={false} position={[rx, ry, s > 0 ? 0.014 : -0.002]} />
+            ))}
+          </group>
         ))}
         {g.trunk.map((d, i) => (
           <mesh key={i} position={d.p} quaternion={d.q} material={i % 2 ? m.wood : m.ochre} castShadow>
@@ -465,6 +519,18 @@ export function ElephantModel({ progress, onInspect, ...props }) {
             ))}
             {[-0.21, 0.21].map((x) => (
               <Part key={x} geometry={g.railSide} material={m.dark} paper={false} position={[x, 0.025, 0]} />
+            ))}
+            {[[-0.2, -0.15], [0.2, -0.15], [-0.2, 0.15], [0.2, 0.15]].map(([x, z]) => (
+              <group key={`l${x}${z}`} position={[x, 0.012, z]}>
+                <Part geometry={g.lampPost} material={m.dark} paper={false} />
+                <Part geometry={g.lamp} material={m.ivory} paper={false} position={[0, 0.085, 0]} />
+              </group>
+            ))}
+            {[[0.15, 0.1], [0.17, -0.05], [-0.17, 0.08]].map(([x, z]) => (
+              <group key={`r${x}${z}`} position={[x, 0.012, z]}>
+                <Part geometry={g.rider} material={m.blue} paper={false} />
+                <Part geometry={g.riderHead} material={m.ochre} paper={false} position={[0, 0.048, 0]} />
+              </group>
             ))}
             <group position={[-0.04, 0.025, 0]}>
               <Part geometry={g.house} material={m.cream} paper />
@@ -639,6 +705,21 @@ export function PassageModel({ progress, onInspect, ...props }) {
         ))}
         {[-0.105, 0.105].map((x) => (
           <Part key={x} geometry={g.stairRail} material={m.dark} paper={false} position={[x, 0.13, -0.0]} rotation={[0.46, 0, 0]} />
+        ))}
+        {[-0.115, 0.115].map((x) =>
+          [0.08, -0.08].map((z, k) => (
+            <group key={`lamp${x}${z}`} position={[x, 0.07 + k * 0.08, z]}>
+              <Part geometry={g.lampPost} material={m.dark} paper={false} />
+              <Part geometry={g.globe} material={m.ivory} paper={false} position={[0, 0.1, 0]} />
+            </group>
+          )),
+        )}
+        {[-0.2, -0.07, 0.07, 0.2].map((x) => (
+          <group key={`ls${x}`} position={[x, 0.215, -0.24]}>
+            <Part geometry={g.pedestal} material={m.white} paper />
+            <Part geometry={g.statue} material={m.ivory} paper={false} position={[0, 0.04, 0]} />
+            <Part geometry={g.statueHead} material={m.ivory} paper={false} position={[0, 0.078, 0]} />
+          </group>
         ))}
         {[-0.13, 0.13].map((x) => (
           <group key={`b${x}`} position={[x, 0, 0.22]}>

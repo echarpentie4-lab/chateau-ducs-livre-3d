@@ -71,7 +71,7 @@ export default function Scene({ state, dispatch, catalogue, spreadsByBook }) {
       {/* livre complet (pages) : construit à l'ouverture, visible hors du carrousel */}
       {book && (
         <Book
-          key={book.id}
+          key={`${book.id}-${book.lang}`}
           bookId={book.id}
           anim={anim}
           leafStates={leafStates}

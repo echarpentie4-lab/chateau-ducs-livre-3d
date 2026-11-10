@@ -15,7 +15,7 @@ const cache = new Map()
 
 // Mis en cache par livre : le carrousel et le livre ouvert réutilisent les mêmes textures.
 export function getBookMaterials(id, meta, totalT) {
-  const key = `${id}|${totalT.toFixed(4)}`
+  const key = `${id}|${meta.labels?.chapter || ''}|${meta.coverTitle}|${totalT.toFixed(4)}`
   if (cache.has(key)) return cache.get(key)
   const cover = makeCoverTextures(meta)
   const spineTex = makeSpineTextures(meta, totalT / COVER_H)

@@ -147,7 +147,7 @@ export default function Carousel({ books, selected, active, hiddenIndex, shelf, 
         color="#ffe2b4"
       />
       {books.map((b, i) => (
-        <ClosedBook key={b.id} book={b} index={i} ring={ring} onPick={active ? pick : () => {}} />
+        <ClosedBook key={`${b.id}-${b.lang}`} book={b} index={i} ring={ring} onPick={active ? pick : () => {}} />
       ))}
     </group>
   )

@@ -53,6 +53,15 @@ function paintParchment(ctx, side, seed) {
   ctx.fillRect(0, 0, PW, PH)
 }
 
+// libellés imprimés (traduits via meta.labels, voir src/i18n)
+const L = (meta) =>
+  meta?.labels || {
+    chapter: 'Chapitre', plate: 'Planche', foldout: 'Planche dépliante',
+    moat: 'Les douves, remplies par la Loire', canal: 'Le canal Saint-Félix',
+    parvis: 'Le parvis de la place Saint-Pierre', rails: "Le parc des Chantiers, sur l'île de Nantes",
+    gallery: 'La galerie, de la rue de la Fosse à la rue Santeuil',
+  }
+
 const area = (side) => (side === 'front' ? { x0: 150, x1: PW - 110 } : { x0: 110, x1: PW - 150 })
 
 function ornament(ctx, cx, y, half, color = SEPIA) {
@@ -351,7 +360,7 @@ function drawChapterLeft(ctx, spread, img, meta, folioN) {
   ctx.fillStyle = RED
   ctx.font = `600 30px ${DISPLAY}`
   setSpacing(ctx, 10)
-  ctx.fillText(`CHAPITRE ${roman(spread.number)}`, cx, 205)
+  ctx.fillText(`${L(meta).chapter.toUpperCase()} ${roman(spread.number)}`, cx, 205)
   setSpacing(ctx, 0)
   ornament(ctx, cx, 236, 200)
   let y = centeredTitle(ctx, spread.title, cx, 262, w - 20, 66)
@@ -371,7 +380,8 @@ function drawChapterLeft(ctx, spread, img, meta, folioN) {
   ctx.fillStyle = SEPIA
   ctx.textAlign = 'center'
   ctx.font = `italic 26px ${SERIF}`
-  const cap = spread.caption ? `Planche ${roman(spread.number)} — ${spread.caption}` : `Planche ${roman(spread.number)}`
+  const plate = `${L(meta).plate} ${roman(spread.number)}`
+  const cap = spread.caption ? `${plate} — ${spread.caption}` : plate
   wrapSimple(ctx, cap, w - 40)
     .slice(0, 2)
     .forEach((l, i) => ctx.fillText(l, cx, Math.min(end + 46, PH - 150) + i * 30))
@@ -397,7 +407,7 @@ function drawPopupLeft(ctx, spread, meta, folioN) {
   ctx.fillStyle = RED
   ctx.font = `600 28px ${DISPLAY}`
   setSpacing(ctx, 10)
-  const kicker = spread.number ? `CHAPITRE ${roman(spread.number)}` : String(spread.subtitle || 'Planche dépliante').toUpperCase()
+  const kicker = spread.number ? `${L(meta).chapter.toUpperCase()} ${roman(spread.number)}` : String(spread.subtitle || L(meta).foldout).toUpperCase()
   ctx.fillText(kicker, cx, 205)
   setSpacing(ctx, 0)
   ornament(ctx, cx, 236, 200)
@@ -422,7 +432,8 @@ function drawPopupLeft(ctx, spread, meta, folioN) {
 }
 
 // Plan au sol sous la maquette : douves (château), canal (LU) ou parvis pavé (cathédrale).
-function drawPopupRight(ctx, folioN, model = 'castle') {
+function drawPopupRight(ctx, folioN, model = 'castle', meta = {}) {
+  const lb = L(meta)
   const cx = PW / 2 + 20
   const cy = PH / 2 - 20
   ctx.save()
@@ -447,7 +458,7 @@ function drawPopupRight(ctx, folioN, model = 'castle') {
     ctx.strokeRect(150, cy - 420, PW - 300, 720)
     ctx.setLineDash([])
     ctx.font = `italic 28px ${FELL}`
-    ctx.fillText('Le canal Saint-Félix', cx, PH - 160)
+    ctx.fillText(lb.canal, cx, PH - 160)
   } else if (model === 'elephant') {
     // les rails du parc des Chantiers
     ctx.lineWidth = 2
@@ -469,7 +480,7 @@ function drawPopupRight(ctx, folioN, model = 'castle') {
     }
     ctx.globalAlpha = 1
     ctx.font = `italic 28px ${FELL}`
-    ctx.fillText('Le parc des Chantiers, sur l\'île de Nantes', cx, PH - 160)
+    ctx.fillText(lb.rails, cx, PH - 160)
   } else if (model === 'passage') {
     // parquet de la galerie
     ctx.globalAlpha = 0.25
@@ -482,7 +493,7 @@ function drawPopupRight(ctx, folioN, model = 'castle') {
     }
     ctx.globalAlpha = 1
     ctx.font = `italic 28px ${FELL}`
-    ctx.fillText('La galerie, de la rue de la Fosse à la rue Santeuil', cx, PH - 160)
+    ctx.fillText(lb.gallery, cx, PH - 160)
   } else if (model === 'cathedral') {
     // parvis pavé de la place Saint-Pierre
     ctx.globalAlpha = 0.25
@@ -501,7 +512,7 @@ function drawPopupRight(ctx, folioN, model = 'castle') {
     }
     ctx.globalAlpha = 1
     ctx.font = `italic 28px ${FELL}`
-    ctx.fillText('Le parvis de la place Saint-Pierre', cx, PH - 160)
+    ctx.fillText(lb.parvis, cx, PH - 160)
   } else {
     ctx.strokeStyle = 'rgba(70,90,100,0.35)'
     ctx.lineWidth = 40
@@ -518,7 +529,7 @@ function drawPopupRight(ctx, folioN, model = 'castle') {
     }
     ctx.setLineDash([])
     ctx.font = `italic 28px ${FELL}`
-    ctx.fillText('Les douves, remplies par la Loire', cx, PH - 160)
+    ctx.fillText(lb.moat, cx, PH - 160)
   }
   ctx.restore()
   folio(ctx, 'front', folioN)
@@ -565,7 +576,7 @@ export function createPage(def, side, spreads, meta) {
     const folioL = (def.idx ?? 0) * 2 + 2
     if (def.kind === 'title') drawTitlePage(ctx, meta, img)
     else if (def.kind === 'left') s.kind === 'popup' ? drawPopupLeft(ctx, s, meta, folioL) : drawChapterLeft(ctx, s, img, meta, folioL)
-    else if (def.kind === 'right') s.kind === 'popup' ? drawPopupRight(ctx, folioL + 1, s.model) : drawChapterRight(ctx, s, folioL + 1, meta)
+    else if (def.kind === 'right') s.kind === 'popup' ? drawPopupRight(ctx, folioL + 1, s.model, meta) : drawChapterRight(ctx, s, folioL + 1, meta)
     else drawColophon(ctx)
     texture.needsUpdate = true
   }

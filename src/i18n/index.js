@@ -1,0 +1,201 @@
+// =========================================================================
+// 🌍 LANGUES DU SITE
+// Les textes des livres en français sont dans src/data/livres/*.js.
+// Leurs traductions sont dans src/i18n/books/{en,de,es}.js (même ordre de
+// chapitres). Les textes de l'interface sont ci-dessous.
+// =========================================================================
+import en from './books/en'
+import de from './books/de'
+import es from './books/es'
+
+export const LANGS = [
+  { code: 'fr', label: 'Français', short: 'FR' },
+  { code: 'en', label: 'English', short: 'EN' },
+  { code: 'de', label: 'Deutsch', short: 'DE' },
+  { code: 'es', label: 'Español', short: 'ES' },
+]
+
+const BOOKS = { en, de, es }
+
+// ───────────────────────── Interface ─────────────────────────
+const UI = {
+  fr: {
+    brand: 'Patrimoine · Nantes',
+    library: 'Mémoire de Nantes',
+    loading: 'Ouverture des archives…',
+    prevBook: 'Livre précédent',
+    nextBook: 'Livre suivant',
+    books: 'Livres de la bibliothèque',
+    open: 'Ouvrir ce livre',
+    dragLibrary: 'Faites glisser pour parcourir la bibliothèque',
+    toc: 'Sommaire',
+    openToc: 'Ouvrir le sommaire',
+    closeToc: 'Fermer le sommaire',
+    zoomIn: 'Zoomer',
+    zoomOut: 'Dézoomer',
+    close: 'Fermer le livre',
+    pagination: 'Pagination',
+    prevPage: 'Page précédente',
+    prevShort: 'Préc.',
+    nextPage: 'Tourner la page',
+    nextShort: 'Suiv.',
+    pageOf: (a, b) => `Page ${a} sur ${b}`,
+    chapter: 'Chapitre',
+    plate: 'Planche dépliante',
+    focusGroup: 'Page en gros plan',
+    illustration: 'Illustration',
+    text: 'Texte',
+    dragPage: 'Faites glisser pour parcourir la page',
+    wheel: ' · molette pour ajuster',
+    pinch: ' · pincez pour zoomer',
+    closeInfo: "Fermer l'info-bulle",
+    pageAbbr: 'p.',
+    language: 'Langue',
+    soundOn: 'Couper le son',
+    soundOff: 'Activer le son',
+  },
+  en: {
+    brand: 'Heritage · Nantes',
+    library: 'Memory of Nantes',
+    loading: 'Opening the archives…',
+    prevBook: 'Previous book',
+    nextBook: 'Next book',
+    books: 'Books in the library',
+    open: 'Open this book',
+    dragLibrary: 'Drag to browse the library',
+    toc: 'Contents',
+    openToc: 'Open the contents',
+    closeToc: 'Close the contents',
+    zoomIn: 'Zoom in',
+    zoomOut: 'Zoom out',
+    close: 'Close the book',
+    pagination: 'Pagination',
+    prevPage: 'Previous page',
+    prevShort: 'Prev.',
+    nextPage: 'Turn the page',
+    nextShort: 'Next',
+    pageOf: (a, b) => `Page ${a} of ${b}`,
+    chapter: 'Chapter',
+    plate: 'Pop-up plate',
+    focusGroup: 'Close-up page',
+    illustration: 'Illustration',
+    text: 'Text',
+    dragPage: 'Drag to move around the page',
+    wheel: ' · scroll to adjust',
+    pinch: ' · pinch to zoom',
+    closeInfo: 'Close the tooltip',
+    pageAbbr: 'p.',
+    language: 'Language',
+    soundOn: 'Mute sound',
+    soundOff: 'Turn sound on',
+  },
+  de: {
+    brand: 'Kulturerbe · Nantes',
+    library: 'Gedächtnis von Nantes',
+    loading: 'Die Archive werden geöffnet…',
+    prevBook: 'Vorheriges Buch',
+    nextBook: 'Nächstes Buch',
+    books: 'Bücher der Bibliothek',
+    open: 'Dieses Buch öffnen',
+    dragLibrary: 'Ziehen, um durch die Bibliothek zu blättern',
+    toc: 'Inhalt',
+    openToc: 'Inhaltsverzeichnis öffnen',
+    closeToc: 'Inhaltsverzeichnis schließen',
+    zoomIn: 'Vergrößern',
+    zoomOut: 'Verkleinern',
+    close: 'Buch schließen',
+    pagination: 'Seitennavigation',
+    prevPage: 'Vorherige Seite',
+    prevShort: 'Zurück',
+    nextPage: 'Umblättern',
+    nextShort: 'Weiter',
+    pageOf: (a, b) => `Seite ${a} von ${b}`,
+    chapter: 'Kapitel',
+    plate: 'Aufklapptafel',
+    focusGroup: 'Seite in Nahaufnahme',
+    illustration: 'Bild',
+    text: 'Text',
+    dragPage: 'Ziehen, um die Seite zu erkunden',
+    wheel: ' · Mausrad zum Anpassen',
+    pinch: ' · zum Zoomen auseinanderziehen',
+    closeInfo: 'Infofenster schließen',
+    pageAbbr: 'S.',
+    language: 'Sprache',
+    soundOn: 'Ton ausschalten',
+    soundOff: 'Ton einschalten',
+  },
+  es: {
+    brand: 'Patrimonio · Nantes',
+    library: 'Memoria de Nantes',
+    loading: 'Abriendo los archivos…',
+    prevBook: 'Libro anterior',
+    nextBook: 'Libro siguiente',
+    books: 'Libros de la biblioteca',
+    open: 'Abrir este libro',
+    dragLibrary: 'Desliza para recorrer la biblioteca',
+    toc: 'Índice',
+    openToc: 'Abrir el índice',
+    closeToc: 'Cerrar el índice',
+    zoomIn: 'Acercar',
+    zoomOut: 'Alejar',
+    close: 'Cerrar el libro',
+    pagination: 'Paginación',
+    prevPage: 'Página anterior',
+    prevShort: 'Ant.',
+    nextPage: 'Pasar la página',
+    nextShort: 'Sig.',
+    pageOf: (a, b) => `Página ${a} de ${b}`,
+    chapter: 'Capítulo',
+    plate: 'Lámina desplegable',
+    focusGroup: 'Página en primer plano',
+    illustration: 'Ilustración',
+    text: 'Texto',
+    dragPage: 'Desliza para recorrer la página',
+    wheel: ' · rueda para ajustar',
+    pinch: ' · pellizca para ampliar',
+    closeInfo: 'Cerrar la ficha',
+    pageAbbr: 'p.',
+    language: 'Idioma',
+    soundOn: 'Silenciar',
+    soundOff: 'Activar el sonido',
+  },
+}
+
+export const ui = (lang) => UI[lang] || UI.fr
+
+// ───────────────────── Textes imprimés dans les pages ─────────────────────
+const PAGE = {
+  fr: {
+    chapter: 'Chapitre', plate: 'Planche', foldout: 'Planche dépliante',
+    moat: 'Les douves, remplies par la Loire', canal: 'Le canal Saint-Félix',
+    parvis: 'Le parvis de la place Saint-Pierre', rails: "Le parc des Chantiers, sur l'île de Nantes",
+    gallery: 'La galerie, de la rue de la Fosse à la rue Santeuil',
+  },
+  en: {
+    chapter: 'Chapter', plate: 'Plate', foldout: 'Pop-up plate',
+    moat: 'The moat, fed by the Loire', canal: 'The Saint-Félix canal',
+    parvis: 'The square in front of Saint-Pierre', rails: 'The Parc des Chantiers, on the Île de Nantes',
+    gallery: 'The gallery, from rue de la Fosse to rue Santeuil',
+  },
+  de: {
+    chapter: 'Kapitel', plate: 'Tafel', foldout: 'Aufklapptafel',
+    moat: 'Der Burggraben, gespeist von der Loire', canal: 'Der Saint-Félix-Kanal',
+    parvis: 'Der Vorplatz der Place Saint-Pierre', rails: 'Der Parc des Chantiers auf der Île de Nantes',
+    gallery: 'Die Galerie, von der Rue de la Fosse zur Rue Santeuil',
+  },
+  es: {
+    chapter: 'Capítulo', plate: 'Lámina', foldout: 'Lámina desplegable',
+    moat: 'El foso, alimentado por el Loira', canal: 'El canal de Saint-Félix',
+    parvis: 'El atrio de la plaza Saint-Pierre', rails: 'El Parc des Chantiers, en la Isla de Nantes',
+    gallery: 'La galería, de la rue de la Fosse a la rue Santeuil',
+  },
+}
+
+// Livre traduit : on superpose les textes traduits aux données françaises
+// (images, gravures, maquettes et mise en page restent identiques).
+export function localizeBook(book, lang) {
+  const tr = BOOKS[lang]?.[book.id]
+  const meta = { ...book.meta, ...(tr?.meta || {}), labels: PAGE[lang] || PAGE.fr }
+  const chapters = book.chapters.map((c, i) => ({ ...c, ...(tr?.chapters?.[i] || {}) }))
+  return { ...book, lang, meta, chapters }
+}

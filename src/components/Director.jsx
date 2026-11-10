@@ -4,6 +4,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import gsap from 'gsap'
 import { MOUSE, TOUCH } from 'three'
 import { PHASE } from '../state/bookMachine'
+import * as sound from '../audio/sound'
 import { carouselPose, alignPose, readingPose, pagePose, popupPose } from '../three/cameraPoses'
 
 const MODES = {
@@ -46,7 +47,10 @@ export default function Director({ phase, spread, zoom, spreads, anim, leafState
   }
 
   const flip = (t, leaf, to, at, duration = 1.25) => {
-    t.call(() => { leaf.dir = to > leaf.p ? 1 : -1 }, null, at)
+    t.call(() => {
+      leaf.dir = to > leaf.p ? 1 : -1
+      sound.pageTurn(duration)
+    }, null, at)
     t.to(leaf, { p: to, duration, ease: 'power2.inOut' }, at)
   }
 
@@ -94,10 +98,12 @@ export default function Director({ phase, spread, zoom, spreads, anim, leafState
         t.to(anim, { lift: 0.06, duration: 1.35, ease: 'power2.inOut' }, 0.1)
         // 2. contact avec la table : petite chute amortie
         t.to(anim, { lift: 0, duration: 0.22, ease: 'power2.in' }, 1.45)
+        t.call(() => sound.land(), null, 1.66)
         t.to(anim, { bump: 1, duration: 0.1, ease: 'power1.out' }, 1.67)
         t.to(anim, { bump: 0, duration: 0.4, ease: 'bounce.out' }, 1.77)
         // 3. ouverture : la couverture pivote, la première page suit avec un léger retard
         const o = 1.85
+        t.call(() => sound.coverOpen(), null, o)
         t.to(anim, { open: 1, duration: 2.2, ease: 'power2.inOut' }, o)
         flip(t, leafStates[0], 1, o + 0.5, 2.1)
         // 4. zoom progressif sur la double-page
@@ -138,6 +144,7 @@ export default function Director({ phase, spread, zoom, spreads, anim, leafState
         const step = turnedLeaves.length > 3 ? 0.07 : 0.1
         turnedLeaves.forEach((leaf, k) => flip(t, leaf, 0, at + k * step, 0.9))
         const after = at + (turnedLeaves.length ? 0.55 + turnedLeaves.length * step : 0)
+        t.call(() => sound.coverClose(), null, after + 0.2)
         t.to(anim, { open: 0, duration: 1.6, ease: 'power2.inOut' }, after)
         t.to(anim, { lift: 1, duration: 1.8, ease: 'power2.inOut' }, after + 1.45)
         t.to(shelf, { away: 0, duration: 1.8, ease: 'power2.inOut' }, after + 1.3) // retour dans le carrousel

@@ -1,7 +1,9 @@
-import { useState } from 'react'
-import { BookOpen, ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, X, Rotate3d, ZoomIn, ZoomOut, List, Sparkles, Image as ImageIcon, AlignLeft, Hand } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { BookOpen, ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, X, Rotate3d, ZoomIn, ZoomOut, List, Sparkles, Image as ImageIcon, AlignLeft, Hand, Volume2, VolumeX, Languages } from 'lucide-react'
 import { PHASE } from '../state/bookMachine'
 import { roman } from '../three/canvasUtils'
+import { LANGS, ui } from '../i18n'
+import * as sound from '../audio/sound'
 
 const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold'
 
@@ -30,9 +32,55 @@ const smallRound =
   `pointer-events-auto grid h-11 w-11 place-items-center rounded-full border border-gold/55 bg-[#140b06]/75 ` +
   `text-gold-light backdrop-blur-sm transition active:scale-95 ${focusRing}`
 
-const spreadLabel = (s) => (s.number ? `Chapitre ${roman(s.number)}` : 'Planche dépliante')
+const spreadLabel = (s, t) => (s.number ? `${t.chapter} ${roman(s.number)}` : t.plate)
 
-export default function UI({ state, catalogue, spreads, dispatch }) {
+// Bouton son (ambiance de bougie + bruitages)
+function SoundToggle({ t }) {
+  const [muted, setMuted] = useState(sound.isMuted())
+  useEffect(() => sound.onMuteChange(setMuted), [])
+  return (
+    <button
+      className={`pointer-events-auto grid h-10 w-10 place-items-center rounded-full border border-gold/45 bg-[#140b06]/75 text-gold-light/90 backdrop-blur-sm transition hover:border-gold hover:text-white ${focusRing}`}
+      onClick={() => sound.setMuted(!muted)}
+      aria-label={muted ? t.soundOff : t.soundOn}
+      title={muted ? t.soundOff : t.soundOn}
+    >
+      {muted ? <VolumeX size={17} /> : <Volume2 size={17} />}
+    </button>
+  )
+}
+
+// Sélecteur de langue (FR / EN / DE / ES)
+function LangSelect({ lang, setLang, t, disabled }) {
+  return (
+    <div
+      role="radiogroup"
+      aria-label={t.language}
+      className={`pointer-events-auto flex items-center gap-0.5 rounded-full border border-gold/45 bg-[#140b06]/75 p-1 backdrop-blur-sm ${disabled ? 'opacity-40' : ''}`}
+    >
+      <Languages size={15} className="mx-1.5 hidden text-gold/80 sm:block" aria-hidden />
+      {LANGS.map((l) => (
+        <button
+          key={l.code}
+          role="radio"
+          aria-checked={lang === l.code}
+          aria-label={l.label}
+          title={l.label}
+          disabled={disabled}
+          onClick={() => setLang(l.code)}
+          className={`rounded-full px-2.5 py-1.5 font-display text-[11px] tracking-[0.12em] transition ${focusRing} ${
+            lang === l.code ? 'bg-gradient-to-b from-[#e2c072] to-[#a17c38] text-[#1d0f06]' : 'text-gold-light/80 hover:text-white'
+          }`}
+        >
+          {l.short}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+export default function UI({ state, catalogue, spreads, dispatch, lang, setLang }) {
+  const t = ui(lang)
   const [tocOpen, setTocOpen] = useState(false)
   const { phase, spread, zoom, info, book, openBook } = state
   const shelfBook = catalogue[book]
@@ -45,9 +93,15 @@ export default function UI({ state, catalogue, spreads, dispatch }) {
   return (
     <div className="pointer-events-none absolute inset-0 select-none">
       <header className="absolute left-5 top-5 md:left-10 md:top-8">
-        <p className="font-display text-[10px] md:text-xs tracking-[0.4em] text-gold/80 uppercase">Patrimoine · Nantes</p>
-        <p className={`max-w-[38vw] truncate font-serif italic text-lg md:text-2xl text-gold-light/90 ${closed ? '' : 'hidden lg:block'}`}>{closed ? 'Mémoire de Nantes' : openTitle}</p>
+        <p className="font-display text-[10px] md:text-xs tracking-[0.4em] text-gold/80 uppercase">{t.brand}</p>
+        <p className={`max-w-[38vw] truncate font-serif italic text-lg md:text-2xl text-gold-light/90 ${closed ? '' : 'hidden lg:block'}`}>{closed ? t.library : openTitle}</p>
       </header>
+
+      {/* langue (dans la bibliothèque) et son (toujours) */}
+      <div className={`absolute right-4 top-4 md:right-10 md:top-8 flex items-center gap-2 ${reading ? 'top-[4.1rem] md:top-[5.3rem]' : ''}`}>
+        {closed && <LangSelect lang={lang} setLang={setLang} t={t} disabled={!closed} />}
+        <SoundToggle t={t} />
+      </div>
 
       {/* ── BIBLIOTHÈQUE : carrousel de livres ── */}
       {closed && (
@@ -55,14 +109,14 @@ export default function UI({ state, catalogue, spreads, dispatch }) {
           <button
             className={`fade-up ${roundBtn} absolute left-6 top-[42%] hidden -translate-y-1/2 md:grid lg:left-12`}
             onClick={() => dispatch({ type: 'PREV' })}
-            aria-label="Livre précédent"
+            aria-label={t.prevBook}
           >
             <ChevronLeft size={30} strokeWidth={1.4} />
           </button>
           <button
             className={`fade-up ${roundBtn} absolute right-6 top-[42%] hidden -translate-y-1/2 md:grid lg:right-12`}
             onClick={() => dispatch({ type: 'NEXT' })}
-            aria-label="Livre suivant"
+            aria-label={t.nextBook}
           >
             <ChevronRight size={30} strokeWidth={1.4} />
           </button>
@@ -73,10 +127,10 @@ export default function UI({ state, catalogue, spreads, dispatch }) {
             </p>
             <div className="flex items-center gap-3">
             {/* flèches compactes sur mobile, de part et d'autre des points */}
-            <button className={`${smallRound} md:hidden`} onClick={() => dispatch({ type: 'PREV' })} aria-label="Livre précédent">
+            <button className={`${smallRound} md:hidden`} onClick={() => dispatch({ type: 'PREV' })} aria-label={t.prevBook}>
               <ChevronLeft size={22} strokeWidth={1.5} />
             </button>
-            <div className="flex gap-2" role="tablist" aria-label="Livres de la bibliothèque">
+            <div className="flex gap-2" role="tablist" aria-label={t.books}>
               {catalogue.map((b, i) => (
                 <button
                   key={b.id}
@@ -90,7 +144,7 @@ export default function UI({ state, catalogue, spreads, dispatch }) {
                 />
               ))}
             </div>
-            <button className={`${smallRound} md:hidden`} onClick={() => dispatch({ type: 'NEXT' })} aria-label="Livre suivant">
+            <button className={`${smallRound} md:hidden`} onClick={() => dispatch({ type: 'NEXT' })} aria-label={t.nextBook}>
               <ChevronRight size={22} strokeWidth={1.5} />
             </button>
             </div>
@@ -103,10 +157,10 @@ export default function UI({ state, catalogue, spreads, dispatch }) {
             >
               <span className="pointer-events-none absolute inset-[5px] rounded-[2px] border border-gold/25" />
               <BookOpen className="shrink-0 transition-transform duration-500 group-hover:-rotate-6" size={26} strokeWidth={1.4} />
-              <span>Ouvrir ce livre</span>
+              <span>{t.open}</span>
             </button>
             <p className="flex items-center gap-2 font-serif italic text-xs md:text-sm text-gold-light/60">
-              <Rotate3d size={14} strokeWidth={1.5} /> Faites glisser pour parcourir la bibliothèque
+              <Rotate3d size={14} strokeWidth={1.5} /> {t.dragLibrary}
             </p>
           </div>
         </>
@@ -116,42 +170,42 @@ export default function UI({ state, catalogue, spreads, dispatch }) {
       {reading && (
         <>
           <div className="fade-up absolute right-4 top-4 md:right-10 md:top-8 flex flex-wrap justify-end gap-2">
-            <button className={smallBtn} onClick={() => setTocOpen(true)} disabled={busy} aria-label="Ouvrir le sommaire">
-              <List size={15} /> <span className="hidden sm:inline">Sommaire</span>
+            <button className={smallBtn} onClick={() => setTocOpen(true)} disabled={busy} aria-label={t.openToc}>
+              <List size={15} /> <span className="hidden sm:inline">{t.toc}</span>
             </button>
             <button className={smallBtn} onClick={() => dispatch({ type: 'TOGGLE_ZOOM' })} disabled={busy} aria-pressed={!!zoom}>
               {zoom ? <ZoomOut size={15} /> : <ZoomIn size={15} />}
-              <span className="hidden sm:inline">{zoom ? 'Dézoomer' : 'Zoomer'}</span>
+              <span className="hidden sm:inline">{zoom ? t.zoomOut : t.zoomIn}</span>
             </button>
             <button className={smallBtn} onClick={() => dispatch({ type: 'CLOSE' })} disabled={busy}>
-              <X size={15} /> <span className="hidden sm:inline">Fermer le livre</span>
+              <X size={15} /> <span className="hidden sm:inline">{t.close}</span>
             </button>
           </div>
 
           {/* pagination : gros CTA accessibles sous le livre */}
           <nav
-            aria-label="Pagination"
+            aria-label={t.pagination}
             className="fade-up absolute inset-x-0 bottom-4 md:bottom-7 flex items-center justify-center gap-2 sm:gap-5 px-3"
           >
             <button className={leatherBtn} onClick={() => dispatch({ type: 'PREV' })} disabled={busy || spread === 0}>
               <ArrowLeft size={20} strokeWidth={1.6} />
-              <span className="hidden md:inline whitespace-nowrap">Page précédente</span>
-              <span className="md:hidden">Préc.</span>
+              <span className="hidden md:inline whitespace-nowrap">{t.prevPage}</span>
+              <span className="md:hidden">{t.prevShort}</span>
             </button>
             <div
               aria-live="polite"
               className="flex min-w-0 shrink flex-col items-center rounded-full border border-gold/40 bg-[#140b06]/80 px-3 py-2 sm:min-w-[8.5rem] sm:px-6 backdrop-blur-sm"
             >
               <span className="whitespace-nowrap font-display text-[11px] sm:text-sm uppercase tracking-[0.22em] text-gold-light">
-                Page {spread + 1} sur {spreads.length}
+                {t.pageOf(spread + 1, spreads.length)}
               </span>
               <span className="max-w-[12rem] truncate font-serif italic text-xs sm:text-sm text-gold/80">
-                {current && spreadLabel(current)}
+                {current && spreadLabel(current, t)}
               </span>
             </div>
             <button className={brassBtn} onClick={() => dispatch({ type: 'NEXT' })} disabled={busy || spread === spreads.length - 1}>
-              <span className="hidden md:inline whitespace-nowrap">Tourner la page</span>
-              <span className="md:hidden">Suiv.</span>
+              <span className="hidden md:inline whitespace-nowrap">{t.nextPage}</span>
+              <span className="md:hidden">{t.nextShort}</span>
               <ArrowRight size={20} strokeWidth={1.8} />
             </button>
           </nav>
@@ -159,10 +213,10 @@ export default function UI({ state, catalogue, spreads, dispatch }) {
           {/* gros plan : choix de la page + aide au déplacement */}
           {zoom && current?.kind === 'chapter' && (
             <div className="fade-up absolute inset-x-0 top-[4.75rem] md:top-24 flex flex-col items-center gap-2 px-3">
-              <div role="group" aria-label="Page en gros plan" className="pointer-events-auto flex rounded-full border border-gold/50 bg-[#140b06]/85 p-1 backdrop-blur-sm">
+              <div role="group" aria-label={t.focusGroup} className="pointer-events-auto flex rounded-full border border-gold/50 bg-[#140b06]/85 p-1 backdrop-blur-sm">
                 {[
-                  ['image', 'Illustration', ImageIcon],
-                  ['text', 'Texte', AlignLeft],
+                  ['image', t.illustration, ImageIcon],
+                  ['text', t.text, AlignLeft],
                 ].map(([side, label, Icon]) => (
                   <button
                     key={side}
@@ -178,7 +232,7 @@ export default function UI({ state, catalogue, spreads, dispatch }) {
                 ))}
               </div>
               <p className="flex items-center gap-2 rounded-full bg-[#140b06]/60 px-3 py-1 font-serif italic text-xs sm:text-sm text-gold-light/75">
-                <Hand size={14} /> Faites glisser pour parcourir la page<span className="hidden md:inline"> · molette pour ajuster</span><span className="md:hidden"> · pincez pour zoomer</span>
+                <Hand size={14} /> {t.dragPage}<span className="hidden md:inline">{t.wheel}</span><span className="md:hidden">{t.pinch}</span>
               </p>
             </div>
           )}
@@ -190,7 +244,7 @@ export default function UI({ state, catalogue, spreads, dispatch }) {
                 <p className="flex items-center gap-2 font-display text-sm uppercase tracking-[0.2em] text-gold">
                   <Sparkles size={15} /> {current.title}
                 </p>
-                <button className={`text-gold-light/80 hover:text-white ${focusRing}`} onClick={() => dispatch({ type: 'TOGGLE_ZOOM' })} aria-label="Fermer l'info-bulle">
+                <button className={`text-gold-light/80 hover:text-white ${focusRing}`} onClick={() => dispatch({ type: 'TOGGLE_ZOOM' })} aria-label={t.closeInfo}>
                   <X size={16} />
                 </button>
               </div>
@@ -204,11 +258,11 @@ export default function UI({ state, catalogue, spreads, dispatch }) {
               <aside
                 onClick={(e) => e.stopPropagation()}
                 className="fade-up absolute right-0 top-0 flex h-full w-[min(26rem,100%)] flex-col border-l border-gold/40 bg-[#160b05]/95 p-6 backdrop-blur"
-                aria-label="Sommaire"
+                aria-label={t.toc}
               >
                 <div className="mb-5 flex items-center justify-between">
-                  <p className="font-display text-lg uppercase tracking-[0.3em] text-gold">Sommaire</p>
-                  <button className={`text-gold-light hover:text-white ${focusRing}`} onClick={() => setTocOpen(false)} aria-label="Fermer le sommaire">
+                  <p className="font-display text-lg uppercase tracking-[0.3em] text-gold">{t.toc}</p>
+                  <button className={`text-gold-light hover:text-white ${focusRing}`} onClick={() => setTocOpen(false)} aria-label={t.closeToc}>
                     <X size={20} />
                   </button>
                 </div>
@@ -226,7 +280,7 @@ export default function UI({ state, catalogue, spreads, dispatch }) {
                       >
                         <span className="w-10 shrink-0 font-display text-xs text-gold">{s.number ? roman(s.number) : '✦'}</span>
                         <span className="font-serif text-lg leading-tight">{s.title}</span>
-                        <span className="ml-auto shrink-0 font-serif italic text-xs text-gold/70">p. {i + 1}</span>
+                        <span className="ml-auto shrink-0 font-serif italic text-xs text-gold/70">{t.pageAbbr} {i + 1}</span>
                       </button>
                     </li>
                   ))}
