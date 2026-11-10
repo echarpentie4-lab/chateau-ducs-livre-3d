@@ -1,6 +1,6 @@
 // Textures procédurales (aucun fichier image requis) : cuir, dorures, bois, carte, pièces…
 import { makeCanvas, rng, addNoise, blotches, edgeShade, toTexture, setSpacing, wrapSimple } from './canvasUtils'
-import { drawCastleSilhouette, drawErmine, drawElephantSilhouette, drawFleurDeLys } from './engraving'
+import { drawCastleSilhouette, drawErmine, drawFleurDeLys, drawEmblem, drawSymbol } from './engraving'
 
 const DISPLAY = 'Cinzel, "Times New Roman", serif'
 const FELL = '"IM Fell English", Georgia, serif'
@@ -77,16 +77,20 @@ function coverGold(ctx, w, h, paint, meta) {
   const p = 112
   ctx.lineWidth = 3
   ctx.strokeRect(p, p, w - p * 2, h - p * 2)
-  // coins : hermines bretonnes en haut, éléphants des Machines en bas
+  // coins : symboles du monument + nef de Nantes (emblème de la ville) en bas à droite
+  const corners = meta.cover?.corners || { tl: 'ermine', tr: 'ermine', bl: 'tower' }
   ctx.lineWidth = 2
-  for (const [x, y] of [[p + 62, p + 70], [w - p - 62, p + 70]]) {
-    drawErmine(ctx, x, y, 78)
+  for (const [kind, x, y] of [
+    [corners.tl, p + 66, p + 70],
+    [corners.tr, w - p - 66, p + 70],
+    [corners.bl, p + 70, h - p - 76],
+    ['nef', w - p - 70, h - p - 76],
+  ]) {
     ctx.beginPath()
-    ctx.arc(x, y + 4, 54, 0, Math.PI * 2)
+    ctx.arc(x, y, 56, 0, Math.PI * 2)
     ctx.stroke()
+    drawSymbol(kind, ctx, x, y, 78)
   }
-  drawElephantSilhouette(ctx, p + 22, h - p - 26, 118, false)
-  drawElephantSilhouette(ctx, w - p - 140, h - p - 26, 118, true)
 
   ctx.textAlign = 'center'
   ctx.textBaseline = 'alphabetic'
@@ -104,7 +108,13 @@ function coverGold(ctx, w, h, paint, meta) {
     y += 84
   }
   diamondRule(ctx, cx, y - 30, 260, 2)
-  drawCastleSilhouette(ctx, cx, y + 230, 360)
+  // motif central propre à chaque monument, centré dans l'espace libre
+  const emblem = meta.cover?.emblem || 'castle'
+  const [maxU, hf] = { castle: [360, 0.5], lu: [420, 1.05], passage: [440, 0.95], cathedral: [400, 1.06], elephant: [440, 0.95] }[emblem] || [300, 1]
+  const top = y + 10
+  const bottom = h - p - 145
+  const u = Math.min(maxU, (bottom - top) / hf)
+  drawEmblem(emblem, ctx, cx, (top + bottom) / 2 + (u * hf) / 2, u)
   // pied de couverture : uniquement « NANTES », centré
   ctx.font = `600 44px ${DISPLAY}`
   setSpacing(ctx, 18)
@@ -117,7 +127,7 @@ export function makeCoverTextures(meta) {
   const w = 1024
   const h = Math.round(w * (2.0 / 1.46))
   const [c, ctx] = makeCanvas(w, h)
-  drawLeather(ctx, w, h, { seed: 11 })
+  drawLeather(ctx, w, h, { seed: 11, base: meta.leather })
   ctx.strokeStyle = 'rgba(0,0,0,0.4)'
   ctx.lineWidth = 3
   ctx.strokeRect(88, 88, w - 176, h - 176)
@@ -151,8 +161,9 @@ export function makeSpineTextures(meta, lengthRatio) {
     }
     ctx.lineWidth = 2
     ctx.strokeRect(w * 0.09 + 22, h * 0.16, w * 0.82 - 44, h * 0.68)
-    drawErmine(ctx, w * 0.045, h * 0.5, h * 0.42)
-    drawErmine(ctx, w * 0.955, h * 0.5, h * 0.42)
+    const sym = meta.cover?.corners?.tl || 'ermine'
+    drawSymbol(sym, ctx, w * 0.045, h * 0.5, h * 0.42)
+    drawSymbol(sym, ctx, w * 0.955, h * 0.5, h * 0.42)
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
     const text = meta.spineTitle.toUpperCase()
@@ -168,7 +179,7 @@ export function makeSpineTextures(meta, lengthRatio) {
     setSpacing(ctx, 0)
   }
   const [c, ctx] = makeCanvas(w, h)
-  drawLeather(ctx, w, h, { seed: 21 })
+  drawLeather(ctx, w, h, { seed: 21, base: meta.leather })
   ctx.save()
   ctx.translate(2, 2)
   draw(ctx, 'rgba(0,0,0,0.5)')

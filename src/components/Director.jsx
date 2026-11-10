@@ -4,16 +4,17 @@ import { useFrame, useThree } from '@react-three/fiber'
 import gsap from 'gsap'
 import { MOUSE, TOUCH } from 'three'
 import { PHASE } from '../state/bookMachine'
-import { orbitPose, alignPose, readingPose, pagePose, popupPose } from '../three/cameraPoses'
+import { carouselPose, alignPose, readingPose, pagePose, popupPose } from '../three/cameraPoses'
 
 const MODES = {
+  carousel: { disabled: true }, // la caméra est fixe : c'est le cercle de livres qui tourne
   orbit: { rotate: true, minDist: 2.6, maxDist: 9, minPolar: 0.08, maxPolar: Math.PI * 0.56 },
   reading: { rotate: false, minDist: 1.0, maxDist: 8, minPolar: 0, maxPolar: Math.PI * 0.45 },
   zoom: { rotate: false, pan: true, minDist: 0.6, maxDist: 8, minPolar: 0, maxPolar: Math.PI * 0.45 },
   popup: { rotate: true, minDist: 1.2, maxDist: 7, minPolar: 0.15, maxPolar: Math.PI * 0.46 },
 }
 
-export default function Director({ phase, spread, zoom, spreads, anim, leafStates, popAnim, dispatch }) {
+export default function Director({ phase, spread, zoom, spreads, anim, leafStates, popAnim, shelf, dispatch }) {
   const { camera, controls, size } = useThree()
   const busy = useRef(false)
   const tl = useRef(null)
@@ -25,6 +26,11 @@ export default function Director({ phase, spread, zoom, spreads, anim, leafState
 
   const setMode = (name) => {
     const m = MODES[name]
+    if (m.disabled) {
+      controls.update() // oriente la caméra vers la cible avant de la figer
+      controls.enabled = false
+      return
+    }
     Object.assign(controls, {
       enabled: true, enableRotate: m.rotate, enablePan: !!m.pan, enableZoom: true, screenSpacePanning: true,
       minDistance: m.minDist, maxDistance: m.maxDist, minPolarAngle: m.minPolar, maxPolarAngle: m.maxPolar,
@@ -78,12 +84,13 @@ export default function Director({ phase, spread, zoom, spreads, anim, leafState
     const W = size.width
     const H = size.height
 
-    if (phase === PHASE.CLOSED && !tl.current) setMode('orbit')
+    if (phase === PHASE.CLOSED && !tl.current) setMode('carousel')
 
     if (phase === PHASE.OPENING) {
       run((t) => {
         // 1. la caméra s'aligne, le livre redescend et pivote à plat
         moveCamera(t, alignPose(), 0, 1.6, 'power2.inOut')
+        t.to(shelf, { away: 1, duration: 1.8, ease: 'power2.inOut' }, 0.15) // les autres livres s'éloignent
         t.to(anim, { lift: 0.06, duration: 1.35, ease: 'power2.inOut' }, 0.1)
         // 2. contact avec la table : petite chute amortie
         t.to(anim, { lift: 0, duration: 0.22, ease: 'power2.in' }, 1.45)
@@ -133,8 +140,9 @@ export default function Director({ phase, spread, zoom, spreads, anim, leafState
         const after = at + (turnedLeaves.length ? 0.55 + turnedLeaves.length * step : 0)
         t.to(anim, { open: 0, duration: 1.6, ease: 'power2.inOut' }, after)
         t.to(anim, { lift: 1, duration: 1.8, ease: 'power2.inOut' }, after + 1.45)
-        moveCamera(t, orbitPose(W, H), after + 0.8, 2.6)
-      }, 'orbit')
+        t.to(shelf, { away: 0, duration: 1.8, ease: 'power2.inOut' }, after + 1.3) // retour dans le carrousel
+        moveCamera(t, carouselPose(W, H), after + 0.8, 2.6)
+      }, 'carousel')
       prevSpread.current = 0
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -149,7 +157,15 @@ export default function Director({ phase, spread, zoom, spreads, anim, leafState
 
   // ── Recadrage si la fenêtre change de taille
   useEffect(() => {
-    if (!controls || phase !== PHASE.READING || busy.current) return
+    if (!controls || busy.current) return
+    if (phase === PHASE.CLOSED) {
+      const p = carouselPose(size.width, size.height)
+      camera.position.set(p.pos.x, p.pos.y, p.pos.z)
+      controls.target.set(p.target.x, p.target.y, p.target.z)
+      controls.update()
+      return
+    }
+    if (phase !== PHASE.READING) return
     run((t) => moveCamera(t, poseFor(), 0, 0.8, 'power2.out'), modeFor(), false)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [size.width, size.height])

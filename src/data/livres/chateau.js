@@ -1,6 +1,8 @@
 // #########################################################################
 // #                                                                       #
-// #   📝 FICHIER DE CONTENU — LE SEUL FICHIER À MODIFIER POUR VOS TEXTES   #
+// #   📝 LIVRE 1 — LE CHÂTEAU DES DUCS DE BRETAGNE                        #
+// #   (un fichier par livre dans src/data/livres/, ordre dans            #
+// #    src/data/catalogue.js)                                            #
 // #                                                                       #
 // #   Aucun code 3D ici. Modifiez les textes entre guillemets / backticks #
 // #   puis sauvegardez : le livre se met à jour automatiquement.          #
@@ -27,6 +29,15 @@
 // =========================================================================
 
 export const bookMeta = {
+  // Titre affiché sous le carrousel de la bibliothèque
+  shelfTitle: "Le Château des ducs de Bretagne",
+  // Couleur du cuir de la reliure
+  leather: "#4a2415",
+  // Décor doré de la couverture : motif central + coins (le coin bas-droit = la nef de Nantes)
+  // motifs possibles : castle, tower, ermine, lu, biscuit, passage, lantern, stairs,
+  //                    elephant, gear, cathedral, rose, arch, nef
+  cover: { emblem: "castle", corners: { tl: "ermine", tr: "ermine", bl: "tower" } },
+
   // Couverture en cuir (texte doré)
   coverKicker: "Histoire du",
   coverTitle: "Château des Ducs de Bretagne",
@@ -178,3 +189,5 @@ export const chaptersData = [
 // =========================================================================
 // FIN DE LA ZONE À ÉDITER
 // =========================================================================
+
+export default { id: 'chateau', meta: bookMeta, chapters: chaptersData }

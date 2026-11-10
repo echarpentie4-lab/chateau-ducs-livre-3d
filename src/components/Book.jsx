@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { PAGE_W, COVER_T, BLOCK_T, COVER_W, COVER_H, LEAF_GAP, BOOK_Y, HOVER_Y } from '../three/dimensions'
 import {
-  makeCoverTextures, makeSpineTextures, makeLeatherTexture, makeGiltEdgeTexture, makeEndpaperTexture,
-} from '../three/materialsTextures'
+  PAGE_W, COVER_T, BLOCK_T, COVER_W, COVER_H, LEAF_GAP, BOOK_Y, HOVER_Y, HOVER_BOB, BOB_SPEED, SELECT_SCALE,
+} from '../three/dimensions'
+import { getBookMaterials, bookThickness } from '../three/bookMaterials'
 import { buildLeafPlan, createPage } from '../three/pages'
 import { cleanUrl } from '../three/canvasUtils'
 import {
@@ -45,7 +45,7 @@ function Leaf({ index, count, state, shape, front, back }) {
 // ───────────────────────── Livre ─────────────────────────
 // anim.lift : 1 = en lévitation verticale, 0 = posé à plat sur le bureau
 // anim.open : 0 = fermé, 1 = couverture ouverte à plat
-export default function Book({ anim, leafStates, popAnim, spreads, meta, onInspect }) {
+export default function Book({ bookId, anim, leafStates, popAnim, spreads, meta, onInspect, visible = true }) {
   const liftGroup = useRef()
   const root = useRef()
   const coverPivot = useRef()
@@ -54,33 +54,13 @@ export default function Book({ anim, leafStates, popAnim, spreads, meta, onInspe
   const leftBlock = useRef()
 
   const count = spreads.length + 1
-  const stack = (count + 2) * LEAF_GAP
-  const totalT = COVER_T * 2 + BLOCK_T + stack
+  const { stack, totalT } = bookThickness(spreads.length)
   // état partagé de la forme du livre, recalculé chaque frame avant les feuillets
   const shape = useMemo(() => ({ hR: BLOCK_T, hL: 0, dip: 0, version: 0, key: '' }), [])
   const blockR = useMemo(() => createBlockGeometry(), [])
   const blockL = useMemo(() => createBlockGeometry(), [])
 
-  const mats = useMemo(() => {
-    const cover = makeCoverTextures(meta)
-    const spineTex = makeSpineTextures(meta, totalT / COVER_H)
-    const leather = new THREE.MeshStandardMaterial({ map: makeLeatherTexture('#4a2415', 31, [1, 1]), roughness: 0.62 })
-    const endpaper = new THREE.MeshStandardMaterial({ map: makeEndpaperTexture(), roughness: 0.8 })
-    const coverFront = new THREE.MeshStandardMaterial({
-      map: cover.map, metalnessMap: cover.metalnessMap, metalness: 1, roughness: 0.48,
-    })
-    const spineMat = new THREE.MeshStandardMaterial({
-      map: spineTex.map, metalnessMap: spineTex.metalnessMap, metalness: 1, roughness: 0.5,
-    })
-    const gilt = new THREE.MeshStandardMaterial({ map: makeGiltEdgeTexture(), metalness: 0.85, roughness: 0.32 })
-    const paper = new THREE.MeshStandardMaterial({ color: '#e6d6b2', roughness: 0.95 })
-    return {
-      cover: [leather, leather, coverFront, endpaper, leather, leather],
-      backCover: [leather, leather, leather, leather, leather, leather],
-      spine: [leather, spineMat, leather, leather, leather, leather],
-      block: [paper, gilt],
-    }
-  }, [meta, totalT])
+  const mats = useMemo(() => getBookMaterials(bookId, meta, totalT), [bookId, meta, totalT])
 
   const pages = useMemo(
     () =>
@@ -91,6 +71,9 @@ export default function Book({ anim, leafStates, popAnim, spreads, meta, onInspe
       })),
     [spreads, meta],
   )
+
+  // Libère la mémoire GPU des pages quand on change de livre
+  useEffect(() => () => pages.forEach((pg) => (pg.front.texture.dispose(), pg.back.texture.dispose())), [pages])
 
   // Chargement asynchrone des illustrations → repeint la page concernée.
   useEffect(() => {
@@ -121,10 +104,10 @@ export default function Book({ anim, leafStates, popAnim, spreads, meta, onInspe
     // ── lévitation verticale ↔ posé à plat
     const rot = smoothstep(0.12, 1, lift) * (Math.PI / 2)
     const g = liftGroup.current
-    g.rotation.order = 'YXZ' // le balancement tourne autour de l'axe vertical du monde
+    g.visible = visible
     g.rotation.x = rot
-    g.rotation.y = Math.sin(t * 0.45) * 0.3 * lift
-    g.position.y = BOOK_Y + (HOVER_Y - BOOK_Y) * lift + Math.sin(t * 1.3) * 0.06 * lift + bump * 0.025
+    g.scale.setScalar(1 + (SELECT_SCALE - 1) * lift) // même taille que dans le carrousel
+    g.position.y = BOOK_Y + (HOVER_Y - BOOK_Y) * lift + Math.sin(t * BOB_SPEED) * HOVER_BOB * lift + bump * 0.025
     g.position.z = -(totalT / 2) * Math.sin(rot)
 
     // ── ouverture : charnière, dos, centrage

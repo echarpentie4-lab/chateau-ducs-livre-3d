@@ -476,3 +476,271 @@ export function drawEngraving(kind, ctx, x, y, w, h, seed = 1, ink = '#2a1b10', 
   ;(KINDS[kind] || castle)(ctx, x, y, w, h, r, ink, paper)
   ctx.restore()
 }
+
+// ═════════════════════ Emblèmes des monuments nantais ═════════════════════
+// Chaque fonction construit un chemin (sans le remplir) : le même dessin sert à la
+// dorure des couvertures et aux gravures des pages. Les ouvertures (fenêtres,
+// portails) sont tracées en sens inverse pour être évidées (règle « nonzero »).
+function holeRect(ctx, x, y, w, h) {
+  ctx.moveTo(x, y)
+  ctx.lineTo(x, y + h)
+  ctx.lineTo(x + w, y + h)
+  ctx.lineTo(x + w, y)
+  ctx.closePath()
+}
+function holePointedArch(ctx, x, base, w, h) {
+  ctx.moveTo(x - w / 2, base)
+  ctx.lineTo(x + w / 2, base)
+  ctx.lineTo(x + w / 2, base - h * 0.6)
+  ctx.quadraticCurveTo(x + w / 2, base - h * 0.9, x, base - h)
+  ctx.quadraticCurveTo(x - w / 2, base - h * 0.9, x - w / 2, base - h * 0.6)
+  ctx.closePath()
+}
+function holeCircle(ctx, x, y, r) {
+  ctx.moveTo(x + r, y)
+  ctx.arc(x, y, r, 0, Math.PI * 2, true)
+}
+function circle(ctx, x, y, r) {
+  ctx.moveTo(x + r, y)
+  ctx.arc(x, y, r, 0, Math.PI * 2)
+}
+
+// Tour LU (dôme, lanternon) et ses deux ailes d'usine.
+function pathLU(ctx, cx, by, u) {
+  ctx.beginPath()
+  ctx.rect(cx - 0.5 * u, by - 0.32 * u, 0.3 * u, 0.32 * u)
+  ctx.rect(cx + 0.2 * u, by - 0.28 * u, 0.3 * u, 0.28 * u)
+  ctx.rect(cx - 0.14 * u, by - 0.62 * u, 0.28 * u, 0.62 * u)
+  ctx.rect(cx - 0.165 * u, by - 0.66 * u, 0.33 * u, 0.04 * u)
+  ctx.moveTo(cx + 0.15 * u, by - 0.66 * u)
+  ctx.ellipse(cx, by - 0.66 * u, 0.15 * u, 0.19 * u, 0, 0, Math.PI, true)
+  ctx.closePath()
+  ctx.rect(cx - 0.05 * u, by - 0.92 * u, 0.1 * u, 0.07 * u)
+  ctx.moveTo(cx + 0.05 * u, by - 0.92 * u)
+  ctx.ellipse(cx, by - 0.92 * u, 0.05 * u, 0.05 * u, 0, 0, Math.PI, true)
+  ctx.closePath()
+  ctx.rect(cx - 0.008 * u, by - 1.05 * u, 0.016 * u, 0.09 * u)
+  holeRect(ctx, cx - 0.06 * u, by - 0.42 * u, 0.12 * u, 0.17 * u)
+  holeCircle(ctx, cx, by - 0.74 * u, 0.045 * u)
+  for (const x of [-0.44, -0.33, 0.26, 0.37]) holeRect(ctx, cx + x * u, by - 0.2 * u, 0.06 * u, 0.1 * u)
+}
+
+// Passage Pommeraye : façade à fronton, verrière en arc et grand escalier.
+function pathPassage(ctx, cx, by, u) {
+  ctx.beginPath()
+  ctx.rect(cx - 0.5 * u, by - 0.75 * u, u, 0.75 * u)
+  ctx.moveTo(cx - 0.5 * u, by - 0.75 * u)
+  ctx.lineTo(cx, by - 0.95 * u)
+  ctx.lineTo(cx + 0.5 * u, by - 0.75 * u)
+  ctx.closePath()
+  // ouverture de la galerie (évidée)
+  ctx.moveTo(cx - 0.3 * u, by)
+  ctx.lineTo(cx + 0.3 * u, by)
+  ctx.lineTo(cx + 0.3 * u, by - 0.34 * u)
+  ctx.arc(cx, by - 0.34 * u, 0.3 * u, 0, Math.PI, true)
+  ctx.closePath()
+  // escalier et montants de la verrière (pleins, dans l'ouverture)
+  for (let k = 0; k < 6; k++) ctx.rect(cx - 0.22 * u + k * 0.025 * u, by - (k + 1) * 0.038 * u, 0.44 * u - k * 0.05 * u, 0.03 * u)
+  for (const x of [-0.15, 0, 0.15]) ctx.rect(cx + x * u - 0.006 * u, by - 0.62 * u, 0.012 * u, 0.26 * u)
+  holeCircle(ctx, cx, by - 0.84 * u, 0.045 * u)
+  for (const x of [-0.44, 0.36]) {
+    holeRect(ctx, cx + x * u, by - 0.62 * u, 0.08 * u, 0.16 * u)
+    holeRect(ctx, cx + x * u, by - 0.36 * u, 0.08 * u, 0.16 * u)
+  }
+}
+
+// Cathédrale : deux tours, nef à gâble, portails et rosace.
+function pathCathedral(ctx, cx, by, u) {
+  ctx.beginPath()
+  for (const x of [-0.48, 0.18]) {
+    ctx.rect(cx + x * u, by - 0.95 * u, 0.3 * u, 0.95 * u)
+    for (const px of [x, x + 0.24]) {
+      ctx.moveTo(cx + px * u, by - 0.95 * u)
+      ctx.lineTo(cx + (px + 0.03) * u, by - 1.06 * u)
+      ctx.lineTo(cx + (px + 0.06) * u, by - 0.95 * u)
+      ctx.closePath()
+    }
+  }
+  ctx.rect(cx - 0.18 * u, by - 0.7 * u, 0.36 * u, 0.7 * u)
+  ctx.moveTo(cx - 0.18 * u, by - 0.7 * u)
+  ctx.lineTo(cx, by - 0.9 * u)
+  ctx.lineTo(cx + 0.18 * u, by - 0.7 * u)
+  ctx.closePath()
+  holePointedArch(ctx, cx, by, 0.2 * u, 0.4 * u)
+  holePointedArch(ctx, cx - 0.33 * u, by, 0.12 * u, 0.3 * u)
+  holePointedArch(ctx, cx + 0.33 * u, by, 0.12 * u, 0.3 * u)
+  holeCircle(ctx, cx, by - 0.55 * u, 0.09 * u)
+  holePointedArch(ctx, cx - 0.33 * u, by - 0.62 * u, 0.07 * u, 0.2 * u)
+  holePointedArch(ctx, cx + 0.33 * u, by - 0.62 * u, 0.07 * u, 0.2 * u)
+}
+
+const EMBLEM_PATHS = { lu: pathLU, passage: pathPassage, cathedral: pathCathedral }
+
+// Motif central de couverture (rempli avec le fillStyle courant).
+export function drawEmblem(kind, ctx, cx, baseY, u) {
+  if (kind === 'elephant') return drawElephantSilhouette(ctx, cx - 0.5 * u, baseY, u)
+  if (EMBLEM_PATHS[kind]) {
+    EMBLEM_PATHS[kind](ctx, cx, baseY, u)
+    return ctx.fill()
+  }
+  drawCastleSilhouette(ctx, cx, baseY, u)
+}
+
+// ───────────────────── Symboles des coins de couverture ─────────────────────
+function gearPath(ctx, cx, cy, r, teeth) {
+  for (let i = 0; i <= teeth * 4; i++) {
+    const a = (i / (teeth * 4)) * Math.PI * 2
+    const rr = i % 4 < 2 ? r : r * 0.82
+    i === 0 ? ctx.moveTo(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr) : ctx.lineTo(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr)
+  }
+  ctx.closePath()
+  holeCircle(ctx, cx, cy, r * 0.32)
+}
+
+// La nef de Nantes (emblème de la ville) sur les flots.
+function drawNef(ctx, cx, cy, s) {
+  ctx.beginPath()
+  ctx.moveTo(cx - 0.46 * s, cy + 0.08 * s)
+  ctx.lineTo(cx + 0.46 * s, cy + 0.08 * s)
+  ctx.quadraticCurveTo(cx + 0.3 * s, cy + 0.32 * s, cx, cy + 0.32 * s)
+  ctx.quadraticCurveTo(cx - 0.3 * s, cy + 0.32 * s, cx - 0.46 * s, cy + 0.08 * s)
+  ctx.closePath()
+  ctx.rect(cx - 0.52 * s, cy - 0.02 * s, 0.14 * s, 0.1 * s) // château arrière
+  ctx.rect(cx + 0.38 * s, cy - 0.02 * s, 0.14 * s, 0.1 * s) // château avant
+  ctx.rect(cx - 0.02 * s, cy - 0.5 * s, 0.04 * s, 0.58 * s) // mât
+  ctx.moveTo(cx - 0.3 * s, cy - 0.4 * s)
+  ctx.quadraticCurveTo(cx - 0.36 * s, cy - 0.2 * s, cx - 0.3 * s, cy - 0.02 * s)
+  ctx.lineTo(cx + 0.3 * s, cy - 0.02 * s)
+  ctx.quadraticCurveTo(cx + 0.24 * s, cy - 0.2 * s, cx + 0.3 * s, cy - 0.4 * s)
+  ctx.closePath()
+  ctx.moveTo(cx + 0.02 * s, cy - 0.5 * s)
+  ctx.lineTo(cx + 0.2 * s, cy - 0.45 * s)
+  ctx.lineTo(cx + 0.02 * s, cy - 0.4 * s)
+  ctx.closePath()
+  ctx.fill()
+  ctx.save()
+  ctx.strokeStyle = ctx.fillStyle
+  ctx.lineWidth = Math.max(1.5, s * 0.035)
+  for (const dy of [0.42, 0.52]) {
+    ctx.beginPath()
+    for (let k = 0; k <= 4; k++) {
+      const x0 = cx - 0.5 * s + k * 0.25 * s
+      ctx.moveTo(x0, cy + dy * s)
+      ctx.quadraticCurveTo(x0 + 0.0625 * s, cy + (dy - 0.06) * s, x0 + 0.125 * s, cy + dy * s)
+    }
+    ctx.stroke()
+  }
+  ctx.restore()
+}
+
+export function drawSymbol(kind, ctx, cx, cy, s) {
+  switch (kind) {
+    case 'ermine':
+      return drawErmine(ctx, cx, cy, s)
+    case 'elephant':
+      return drawElephantSilhouette(ctx, cx - 0.55 * s, cy + 0.42 * s, s * 1.1)
+    case 'nef':
+      return drawNef(ctx, cx, cy, s)
+    case 'castle':
+      return drawCastleSilhouette(ctx, cx, cy + 0.35 * s, s)
+    case 'lu':
+    case 'passage':
+    case 'cathedral':
+      EMBLEM_PATHS[kind](ctx, cx, cy + 0.5 * s, s * 0.9)
+      return ctx.fill()
+  }
+  ctx.beginPath()
+  if (kind === 'tower') {
+    ctx.rect(cx - 0.18 * s, cy - 0.28 * s, 0.36 * s, 0.68 * s)
+    ctx.rect(cx - 0.24 * s, cy - 0.36 * s, 0.48 * s, 0.1 * s)
+    for (const x of [-0.24, -0.06, 0.12]) ctx.rect(cx + x * s, cy - 0.46 * s, 0.12 * s, 0.1 * s)
+    holePointedArch(ctx, cx, cy + 0.4 * s, 0.14 * s, 0.24 * s)
+    holeRect(ctx, cx - 0.04 * s, cy - 0.16 * s, 0.08 * s, 0.14 * s)
+  } else if (kind === 'biscuit') {
+    // le Petit Beurre : bords festonnés et rangées de trous
+    ctx.rect(cx - 0.42 * s, cy - 0.3 * s, 0.84 * s, 0.6 * s)
+    for (let i = 0; i <= 8; i++) {
+      circle(ctx, cx - 0.42 * s + i * 0.105 * s, cy - 0.3 * s, 0.05 * s)
+      circle(ctx, cx - 0.42 * s + i * 0.105 * s, cy + 0.3 * s, 0.05 * s)
+    }
+    for (let i = 0; i <= 5; i++) {
+      circle(ctx, cx - 0.42 * s, cy - 0.3 * s + i * 0.12 * s, 0.05 * s)
+      circle(ctx, cx + 0.42 * s, cy - 0.3 * s + i * 0.12 * s, 0.05 * s)
+    }
+    for (let r = 0; r < 2; r++) for (let c = 0; c < 4; c++) holeCircle(ctx, cx - 0.21 * s + c * 0.14 * s, cy - 0.08 * s + r * 0.16 * s, 0.025 * s)
+  } else if (kind === 'lantern') {
+    ctx.rect(cx - 0.03 * s, cy - 0.1 * s, 0.06 * s, 0.55 * s)
+    ctx.rect(cx - 0.12 * s, cy + 0.42 * s, 0.24 * s, 0.06 * s)
+    ctx.moveTo(cx - 0.12 * s, cy - 0.38 * s)
+    ctx.lineTo(cx + 0.12 * s, cy - 0.38 * s)
+    ctx.lineTo(cx + 0.08 * s, cy - 0.1 * s)
+    ctx.lineTo(cx - 0.08 * s, cy - 0.1 * s)
+    ctx.closePath()
+    ctx.moveTo(cx - 0.16 * s, cy - 0.38 * s)
+    ctx.lineTo(cx, cy - 0.52 * s)
+    ctx.lineTo(cx + 0.16 * s, cy - 0.38 * s)
+    ctx.closePath()
+    holeRect(ctx, cx - 0.05 * s, cy - 0.33 * s, 0.1 * s, 0.18 * s)
+  } else if (kind === 'stairs') {
+    for (let k = 0; k < 6; k++) ctx.rect(cx - 0.4 * s + k * 0.13 * s, cy + 0.4 * s - (k + 1) * 0.13 * s, 0.8 * s - k * 0.13 * s, 0.13 * s)
+    ctx.rect(cx - 0.42 * s, cy - 0.38 * s, 0.05 * s, 0.78 * s)
+    circle(ctx, cx - 0.395 * s, cy - 0.42 * s, 0.06 * s)
+  } else if (kind === 'gear') {
+    gearPath(ctx, cx, cy, 0.42 * s, 12)
+  } else if (kind === 'rose') {
+    circle(ctx, cx, cy, 0.44 * s)
+    holeCircle(ctx, cx, cy, 0.36 * s)
+    for (let k = 0; k < 8; k++) {
+      const a = (k / 8) * Math.PI * 2
+      circle(ctx, cx + Math.cos(a) * 0.22 * s, cy + Math.sin(a) * 0.22 * s, 0.09 * s)
+    }
+    circle(ctx, cx, cy, 0.08 * s)
+  } else if (kind === 'arch') {
+    ctx.moveTo(cx - 0.3 * s, cy + 0.45 * s)
+    ctx.lineTo(cx - 0.3 * s, cy - 0.05 * s)
+    ctx.quadraticCurveTo(cx - 0.3 * s, cy - 0.38 * s, cx, cy - 0.5 * s)
+    ctx.quadraticCurveTo(cx + 0.3 * s, cy - 0.38 * s, cx + 0.3 * s, cy - 0.05 * s)
+    ctx.lineTo(cx + 0.3 * s, cy + 0.45 * s)
+    ctx.closePath()
+    holePointedArch(ctx, cx, cy + 0.45 * s, 0.4 * s, 0.82 * s)
+  }
+  ctx.fill()
+}
+
+// Gravure au trait d'un monument (pages sans image et en attendant leur chargement).
+function monument(kind) {
+  return (ctx, x, y, w, h, r, ink, paper) => {
+    const horizon = y + h * 0.86
+    hatchSky(ctx, x, y, w, horizon, r, ink)
+    waves(ctx, x, y, w, h, horizon, r, ink)
+    const u = Math.min(w * 0.82, (h * 0.78) / 1.08)
+    const cx = x + w / 2
+    if (kind === 'elephant') {
+      ctx.fillStyle = ink
+      ctx.globalAlpha = 0.85
+      drawElephantSilhouette(ctx, cx - 0.5 * u, horizon, u)
+      ctx.globalAlpha = 1
+      return
+    }
+    EMBLEM_PATHS[kind](ctx, cx, horizon, u)
+    ctx.fillStyle = paper
+    ctx.fill()
+    ctx.save()
+    ctx.clip()
+    ctx.strokeStyle = ink
+    ctx.globalAlpha = 0.7
+    vHatch(ctx, cx + 0.1 * u, cx + 0.5 * u, horizon - 1.1 * u, horizon, 4)
+    ctx.restore()
+    ctx.strokeStyle = ink
+    ctx.lineWidth = 2
+    EMBLEM_PATHS[kind](ctx, cx, horizon, u)
+    ctx.stroke()
+  }
+}
+
+Object.assign(KINDS, {
+  lu: monument('lu'),
+  passage: monument('passage'),
+  cathedral: monument('cathedral'),
+  elephant: monument('elephant'),
+})

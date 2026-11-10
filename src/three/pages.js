@@ -1,5 +1,5 @@
 // Mise en page des feuillets sur parchemin (canvas 2D → texture).
-// Le contenu vient de src/data/chaptersData.js — rien à modifier ici pour changer les textes.
+// Le contenu vient de src/data/livres/*.js — rien à modifier ici pour changer les textes.
 import { PAGE_DESIGN_W as PW, PAGE_DESIGN_H as PH, PAGE_TEX_SCALE } from './dimensions'
 import { makeCanvas, rng, addNoise, blotches, edgeShade, toTexture, setSpacing, roman, wrapSimple } from './canvasUtils'
 import { drawEngraving, drawErmine } from './engraving'
@@ -288,7 +288,7 @@ function drawTitlePage(ctx, meta, img) {
     ctx.globalCompositeOperation = 'source-over'
   } else {
     const h = Math.min(maxH, maxW * 0.75)
-    drawEngraving('castle', ctx, cx - maxW / 2, top + (maxH - h) / 2, maxW, h, 4, INK, PAPER)
+    drawEngraving(meta.titleEngraving || 'castle', ctx, cx - maxW / 2, top + (maxH - h) / 2, maxW, h, 4, INK, PAPER)
   }
   ctx.fillStyle = SEPIA
   ctx.font = `600 22px ${DISPLAY}`

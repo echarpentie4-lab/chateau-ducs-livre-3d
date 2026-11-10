@@ -55,3 +55,11 @@ export const popupPose = (w, h, zoom) => {
   const k = w / h < 1 ? Math.min(1.9, 1.1 / (w / h)) : 1
   return fromAngles({ x: zoom ? PAGE_W / 2 : PAGE_W / 2 - 0.2, y: BOOK_Y + 0.4, z: 0.05 }, (zoom ? 2.3 : 3.7) * k, zoom ? 1.05 : 0.85, -0.3)
 }
+
+// Bibliothèque : face au livre du premier plan, les voisins visibles de part et d'autre.
+export const carouselPose = (w, h) => {
+  const k = w / h < 1 ? Math.min(2.4, 1.3 / (w / h)) : 1
+  // cible sous le livre : il apparaît dans la moitié haute, au-dessus du titre et du bouton
+  const target = { x: 0, y: HOVER_Y - 0.75, z: -1.2 }
+  return { pos: { x: 0, y: HOVER_Y + 0.35 * k, z: target.z + 7.6 * k }, target }
+}

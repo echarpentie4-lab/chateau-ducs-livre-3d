@@ -19,3 +19,9 @@ export const PAGE_DESIGN_W = 1100
 export const PAGE_DESIGN_H = Math.round((PAGE_DESIGN_W * PAGE_H) / PAGE_W)
 export const PAGE_TEX_W = 920
 export const PAGE_TEX_SCALE = PAGE_TEX_W / PAGE_DESIGN_W
+
+// Lévitation & carrousel de la bibliothèque
+export const HOVER_BOB = 0.08 // amplitude de la lévitation du livre au premier plan
+export const BOB_SPEED = 1.3
+export const SELECT_SCALE = 1.1 // le livre au premier plan est légèrement plus grand
+export const CAROUSEL_RADIUS = 3.1 // le livre sélectionné est en (0, HOVER_Y, 0), le cercle s'étend derrière

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useReducer, useState } from 'react'
 import Scene from './components/Scene'
 import UI from './components/UI'
-import { chaptersData, bookMeta } from './data/chaptersData'
+import { catalogue } from './data/catalogue'
 import { createBookReducer, initialBookState, buildSpreads } from './state/bookMachine'
 
 const FONTS = [
@@ -32,8 +32,8 @@ function useFontsReady() {
 }
 
 export default function App() {
-  const spreads = useMemo(() => buildSpreads(chaptersData), [])
-  const reducer = useMemo(() => createBookReducer(spreads.length), [spreads])
+  const spreadsByBook = useMemo(() => catalogue.map((b) => buildSpreads(b.chapters)), [])
+  const reducer = useMemo(() => createBookReducer(spreadsByBook.map((s) => s.length)), [spreadsByBook])
   const [state, dispatch] = useReducer(reducer, initialBookState)
   const fontsReady = useFontsReady()
 
@@ -54,11 +54,11 @@ export default function App() {
       {fontsReady ? (
         <>
           <div className="absolute inset-0">
-            <Scene state={state} dispatch={dispatch} spreads={spreads} meta={bookMeta} />
+            <Scene state={state} dispatch={dispatch} catalogue={catalogue} spreadsByBook={spreadsByBook} />
           </div>
           <div className="vignette pointer-events-none absolute inset-0" />
           <div className="grain pointer-events-none absolute inset-0" />
-          <UI state={state} spreads={spreads} dispatch={dispatch} />
+          <UI state={state} catalogue={catalogue} spreads={spreadsByBook[state.openBook ?? state.book]} dispatch={dispatch} />
         </>
       ) : (
         <div className="grid h-full place-items-center">

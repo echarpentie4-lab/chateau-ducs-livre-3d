@@ -1,9 +1,9 @@
 // Machine à états stricte du livre.
 //
-//   CLOSED (lévitation, OrbitControls 360°)
-//     └─OPEN─▶ OPENING (le livre se pose, puis s'ouvre) ─DONE─▶ READING
+//   CLOSED (carrousel de livres en lévitation ; NEXT/PREV/SELECT changent de livre)
+//     └─OPEN─▶ OPENING (le livre choisi se pose, puis s'ouvre) ─DONE─▶ READING
 //   READING ─NEXT/PREV/GOTO─▶ TURNING ─DONE─▶ READING
-//   READING ─CLOSE─▶ CLOSING (fermeture, retour en lévitation) ─DONE─▶ CLOSED
+//   READING ─CLOSE─▶ CLOSING (fermeture, retour dans le carrousel) ─DONE─▶ CLOSED
 //
 // "zoom" (false | 'text' | 'image') et "info" sont des sous-états de READING (remis à zéro à chaque page).
 // Toute action non prévue pour l'état courant est ignorée.
@@ -16,22 +16,28 @@ export const PHASE = {
   CLOSING: 'closing',
 }
 
-export const initialBookState = { phase: PHASE.CLOSED, spread: 0, zoom: false, info: false }
+// book : livre au premier plan du carrousel ; openBook : livre ouvert (lecture)
+export const initialBookState = { phase: PHASE.CLOSED, spread: 0, zoom: false, info: false, book: 0, openBook: null }
 
-export function createBookReducer(spreadCount) {
+export function createBookReducer(spreadCounts) {
+  const bookCount = spreadCounts.length
+  const select = (state, i) =>
+    state.phase === PHASE.CLOSED ? { ...state, book: ((i % bookCount) + bookCount) % bookCount } : state
   const turnTo = (state, target) =>
-    state.phase === PHASE.READING && target !== state.spread && target >= 0 && target < spreadCount
+    state.phase === PHASE.READING && target !== state.spread && target >= 0 && target < spreadCounts[state.openBook]
       ? { ...state, phase: PHASE.TURNING, spread: target, zoom: false, info: false }
       : state
 
   return function bookReducer(state, action) {
     switch (action.type) {
+      case 'SELECT':
+        return select(state, action.index)
       case 'OPEN':
-        return state.phase === PHASE.CLOSED ? { ...state, phase: PHASE.OPENING, spread: 0 } : state
+        return state.phase === PHASE.CLOSED ? { ...state, phase: PHASE.OPENING, spread: 0, openBook: state.book } : state
       case 'NEXT':
-        return turnTo(state, state.spread + 1)
+        return state.phase === PHASE.CLOSED ? select(state, state.book + 1) : turnTo(state, state.spread + 1)
       case 'PREV':
-        return turnTo(state, state.spread - 1)
+        return state.phase === PHASE.CLOSED ? select(state, state.book - 1) : turnTo(state, state.spread - 1)
       case 'GOTO':
         return turnTo(state, action.index)
       case 'CLOSE':

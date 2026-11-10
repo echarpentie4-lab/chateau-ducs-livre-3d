@@ -4,17 +4,22 @@ import { OrbitControls, Environment, Lightformer, Sparkles } from '@react-three/
 import Book from './Book'
 import Desk from './Desk'
 import Director from './Director'
-import { FOV, orbitPose } from '../three/cameraPoses'
-import { HOVER_Y } from '../three/dimensions'
+import Carousel from './Carousel'
+import { FOV, carouselPose } from '../three/cameraPoses'
+import { PHASE } from '../state/bookMachine'
 
-const INITIAL_TARGET = [0, HOVER_Y, 0]
-
-export default function Scene({ state, dispatch, spreads, meta }) {
+export default function Scene({ state, dispatch, catalogue, spreadsByBook }) {
+  const { phase, openBook } = state
+  const book = openBook != null ? catalogue[openBook] : null
+  const spreads = openBook != null ? spreadsByBook[openBook] : spreadsByBook[0]
   // Valeurs animées par GSAP et lues chaque frame (hors React : aucune re-render)
   const anim = useMemo(() => ({ open: 0, lift: 1, bump: 0 }), [])
   const popAnim = useMemo(() => ({ u: 0 }), [])
+  const shelf = useMemo(() => ({ away: 0 }), []) // 0 = carrousel visible, 1 = écarté pendant la lecture
   const leafStates = useMemo(() => Array.from({ length: spreads.length + 1 }, () => ({ p: 0, dir: 1 })), [spreads])
-  const start = useMemo(() => orbitPose(window.innerWidth, window.innerHeight).pos, [])
+  const pose = useMemo(() => carouselPose(window.innerWidth, window.innerHeight), [])
+  const start = pose.pos
+  const initialTarget = useMemo(() => [pose.target.x, pose.target.y, pose.target.z], [pose])
 
   return (
     <Canvas
@@ -53,24 +58,41 @@ export default function Scene({ state, dispatch, spreads, meta }) {
       <Desk />
       <Sparkles count={80} scale={[8, 3.5, 5]} position={[0, 1.7, 0]} size={2.2} speed={0.18} opacity={0.45} color="#ffd9a0" />
 
-      <Book
-        anim={anim}
-        leafStates={leafStates}
-        popAnim={popAnim}
-        spreads={spreads}
-        meta={meta}
-        onInspect={() => dispatch({ type: 'INSPECT' })}
+      <Carousel
+        books={catalogue}
+        selected={state.book}
+        active={phase === PHASE.CLOSED}
+        hiddenIndex={phase !== PHASE.CLOSED ? openBook : -1}
+        shelf={shelf}
+        onSelect={(index) => dispatch({ type: 'SELECT', index })}
+        onOpen={() => dispatch({ type: 'OPEN' })}
       />
 
-      <OrbitControls makeDefault target={INITIAL_TARGET} enableDamping dampingFactor={0.08} enablePan={false} />
+      {/* livre complet (pages) : construit à l'ouverture, visible hors du carrousel */}
+      {book && (
+        <Book
+          key={book.id}
+          bookId={book.id}
+          anim={anim}
+          leafStates={leafStates}
+          popAnim={popAnim}
+          spreads={spreads}
+          meta={book.meta}
+          visible={phase !== PHASE.CLOSED}
+          onInspect={() => dispatch({ type: 'INSPECT' })}
+        />
+      )}
+
+      <OrbitControls makeDefault target={initialTarget} enableDamping dampingFactor={0.08} enablePan={false} />
       <Director
-        phase={state.phase}
+        phase={phase}
         spread={state.spread}
         zoom={state.zoom}
         spreads={spreads}
         anim={anim}
         leafStates={leafStates}
         popAnim={popAnim}
+        shelf={shelf}
         dispatch={dispatch}
       />
     </Canvas>

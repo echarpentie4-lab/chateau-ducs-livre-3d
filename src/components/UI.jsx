@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BookOpen, ArrowLeft, ArrowRight, X, Rotate3d, ZoomIn, ZoomOut, List, Sparkles, Image as ImageIcon, AlignLeft, Hand } from 'lucide-react'
+import { BookOpen, ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, X, Rotate3d, ZoomIn, ZoomOut, List, Sparkles, Image as ImageIcon, AlignLeft, Hand } from 'lucide-react'
 import { PHASE } from '../state/bookMachine'
 import { roman } from '../three/canvasUtils'
 
@@ -22,11 +22,17 @@ const smallBtn =
   `font-display text-[11px] uppercase tracking-[0.2em] text-gold-light/90 backdrop-blur-sm transition ` +
   `hover:border-gold hover:text-white disabled:opacity-40 ${focusRing}`
 
+const roundBtn =
+  `pointer-events-auto grid h-14 w-14 md:h-16 md:w-16 place-items-center rounded-full border border-gold/55 bg-[#140b06]/70 ` +
+  `text-gold-light backdrop-blur-sm transition duration-300 hover:scale-110 hover:border-gold hover:text-white ${focusRing}`
+
 const spreadLabel = (s) => (s.kind === 'popup' ? 'Planche dépliante' : `Chapitre ${roman(s.number)}`)
 
-export default function UI({ state, spreads, dispatch }) {
+export default function UI({ state, catalogue, spreads, dispatch }) {
   const [tocOpen, setTocOpen] = useState(false)
-  const { phase, spread, zoom, info } = state
+  const { phase, spread, zoom, info, book, openBook } = state
+  const shelfBook = catalogue[book]
+  const openTitle = openBook != null ? catalogue[openBook].meta.shelfTitle : ''
   const closed = phase === PHASE.CLOSED
   const reading = phase === PHASE.READING || phase === PHASE.TURNING
   const busy = phase !== PHASE.READING
@@ -36,27 +42,61 @@ export default function UI({ state, spreads, dispatch }) {
     <div className="pointer-events-none absolute inset-0 select-none">
       <header className="absolute left-5 top-5 md:left-10 md:top-8">
         <p className="font-display text-[10px] md:text-xs tracking-[0.4em] text-gold/80 uppercase">Patrimoine · Nantes</p>
-        <p className="font-serif italic text-lg md:text-2xl text-gold-light/90">Le Livre du Château</p>
+        <p className={`max-w-[38vw] truncate font-serif italic text-lg md:text-2xl text-gold-light/90 ${closed ? '' : 'hidden lg:block'}`}>{closed ? 'Mémoire de Nantes' : openTitle}</p>
       </header>
 
-      {/* ── MODE DÉCOUVERTE : un seul CTA ── */}
+      {/* ── BIBLIOTHÈQUE : carrousel de livres ── */}
       {closed && (
-        <div className="fade-up absolute inset-x-0 bottom-8 md:bottom-12 flex flex-col items-center gap-4 px-4">
-          <p className="flex items-center gap-2 font-serif italic text-sm md:text-base text-gold-light/65">
-            <Rotate3d size={16} strokeWidth={1.5} /> Faites glisser pour tourner autour du livre
-          </p>
+        <>
           <button
-            onClick={() => dispatch({ type: 'OPEN' })}
-            className={`cta-glow group pointer-events-auto relative flex items-center gap-4 rounded-[3px] border border-gold/70
-              bg-gradient-to-b from-[#2c180d]/95 to-[#120a05]/95 px-10 py-5 md:px-16 md:py-6
-              font-display text-lg md:text-2xl uppercase tracking-[0.3em] text-gold-light
-              backdrop-blur transition-all duration-500 hover:scale-[1.04] hover:border-gold hover:text-white ${focusRing}`}
+            className={`fade-up ${roundBtn} absolute left-3 top-1/2 -translate-y-1/2 md:left-10`}
+            onClick={() => dispatch({ type: 'PREV' })}
+            aria-label="Livre précédent"
           >
-            <span className="pointer-events-none absolute inset-[5px] rounded-[2px] border border-gold/25" />
-            <BookOpen className="shrink-0 transition-transform duration-500 group-hover:-rotate-6" size={30} strokeWidth={1.4} />
-            <span>Lire le livre</span>
+            <ChevronLeft size={30} strokeWidth={1.4} />
           </button>
-        </div>
+          <button
+            className={`fade-up ${roundBtn} absolute right-3 top-1/2 -translate-y-1/2 md:right-10`}
+            onClick={() => dispatch({ type: 'NEXT' })}
+            aria-label="Livre suivant"
+          >
+            <ChevronRight size={30} strokeWidth={1.4} />
+          </button>
+
+          <div className="fade-up absolute inset-x-0 bottom-6 md:bottom-10 flex flex-col items-center gap-3 px-4 text-center">
+            <p aria-live="polite" key={book} className="fade-up font-serif text-2xl md:text-4xl italic text-gold-light drop-shadow">
+              {shelfBook.meta.shelfTitle}
+            </p>
+            <div className="flex gap-2" role="tablist" aria-label="Livres de la bibliothèque">
+              {catalogue.map((b, i) => (
+                <button
+                  key={b.id}
+                  role="tab"
+                  aria-selected={i === book}
+                  aria-label={b.meta.shelfTitle}
+                  onClick={() => dispatch({ type: 'SELECT', index: i })}
+                  className={`pointer-events-auto h-2 rounded-full transition-all duration-500 ${focusRing} ${
+                    i === book ? 'w-9 bg-gold' : 'w-2 bg-gold/35 hover:bg-gold/60'
+                  }`}
+                />
+              ))}
+            </div>
+            <button
+              onClick={() => dispatch({ type: 'OPEN' })}
+              className={`cta-glow group pointer-events-auto relative mt-1 flex items-center gap-4 rounded-[3px] border border-gold/70
+                bg-gradient-to-b from-[#2c180d]/95 to-[#120a05]/95 px-9 py-4 md:px-14 md:py-5
+                font-display text-base md:text-xl uppercase tracking-[0.28em] text-gold-light
+                backdrop-blur transition-all duration-500 hover:scale-[1.04] hover:border-gold hover:text-white ${focusRing}`}
+            >
+              <span className="pointer-events-none absolute inset-[5px] rounded-[2px] border border-gold/25" />
+              <BookOpen className="shrink-0 transition-transform duration-500 group-hover:-rotate-6" size={26} strokeWidth={1.4} />
+              <span>Ouvrir ce livre</span>
+            </button>
+            <p className="flex items-center gap-2 font-serif italic text-xs md:text-sm text-gold-light/60">
+              <Rotate3d size={14} strokeWidth={1.5} /> Faites glisser pour parcourir la bibliothèque
+            </p>
+          </div>
+        </>
       )}
 
       {/* ── MODE LECTURE ── */}
@@ -82,14 +122,14 @@ export default function UI({ state, spreads, dispatch }) {
           >
             <button className={leatherBtn} onClick={() => dispatch({ type: 'PREV' })} disabled={busy || spread === 0}>
               <ArrowLeft size={20} strokeWidth={1.6} />
-              <span className="hidden sm:inline">Page précédente</span>
-              <span className="sm:hidden">Préc.</span>
+              <span className="hidden md:inline whitespace-nowrap">Page précédente</span>
+              <span className="md:hidden">Préc.</span>
             </button>
             <div
               aria-live="polite"
               className="flex min-w-[8.5rem] flex-col items-center rounded-full border border-gold/40 bg-[#140b06]/80 px-4 py-2 sm:px-6 backdrop-blur-sm"
             >
-              <span className="font-display text-[11px] sm:text-sm uppercase tracking-[0.22em] text-gold-light">
+              <span className="whitespace-nowrap font-display text-[11px] sm:text-sm uppercase tracking-[0.22em] text-gold-light">
                 Page {spread + 1} sur {spreads.length}
               </span>
               <span className="max-w-[12rem] truncate font-serif italic text-xs sm:text-sm text-gold/80">
@@ -97,8 +137,8 @@ export default function UI({ state, spreads, dispatch }) {
               </span>
             </div>
             <button className={brassBtn} onClick={() => dispatch({ type: 'NEXT' })} disabled={busy || spread === spreads.length - 1}>
-              <span className="hidden sm:inline">Tourner la page</span>
-              <span className="sm:hidden">Suiv.</span>
+              <span className="hidden md:inline whitespace-nowrap">Tourner la page</span>
+              <span className="md:hidden">Suiv.</span>
               <ArrowRight size={20} strokeWidth={1.8} />
             </button>
           </nav>
