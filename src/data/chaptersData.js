@@ -13,6 +13,7 @@
 // #   • "illustration" : chemin d'une image placée dans /public/images    #
 // #     (ex : "/images/mon-image.jpg") ou une URL https.                  #
 // #     Laissez "" pour une gravure dessinée automatiquement, choisie     #
+// #     (elle s'affiche aussi le temps que l'image se charge)             #
 // #     avec "engraving" : "castle" | "drakkar" | "blason" | "union"      #
 // #     | "tower".                                                        #
 // #   • Une double-page { type: "popup" } fait surgir une maquette en     #
@@ -68,9 +69,9 @@ export const chaptersData = [
     title: "Les Vikings",
     subtitle: "843 – 937",
     content: `En l'an 843, des navires étranges remontent la Loire : ce sont les drakkars des Vikings, des guerriers venus du Nord de l'Europe. Ils attaquent Nantes par surprise, pillent la ville et s'en prennent même aux habitants réfugiés dans la cathédrale. Pendant presque cent ans, les Vikings reviennent régulièrement et finissent même par s'installer dans la région. Les Nantais vivent dans la peur. Puis arrive un chef breton courageux, Alain Barbetorte, qui avait grandi en exil en Angleterre. En 937, il revient en Bretagne et chasse les Vikings de Nantes. On raconte qu'il dut se frayer un chemin à travers les ronces pour atteindre la cathédrale abandonnée. Il fait de Nantes sa capitale et renforce les défenses de la ville, surtout du côté du fleuve, d'où sont toujours venus les dangers.`,
-    illustration: "",
-    engraving: "drakkar",
-    caption: "Un drakkar remontant la Loire",
+    illustration: "/images/vikings-drakkar.png",
+    engraving: "drakkar", // gravure affichée pendant le chargement de l'image
+    caption: "Les drakkars des Vikings remontent le fleuve",
   },
 
   // ─────────────────────────── PAGE 3 ───────────────────────────
@@ -112,9 +113,9 @@ export const chaptersData = [
     title: "Anne de Bretagne",
     subtitle: "1477 – 1491",
     content: `Le 25 janvier 1477, une petite fille naît au château : Anne, la fille du duc François II. Comme son père n'a pas de fils, c'est elle qui héritera un jour de la Bretagne. Très vite, les princes de toute l'Europe veulent l'épouser, car épouser Anne, c'est obtenir la Bretagne ! Mais le roi de France veut s'emparer du duché. La guerre éclate. En 1488, l'armée bretonne est battue à Saint-Aubin-du-Cormier. Quelques semaines plus tard, François II meurt. Anne n'a que 11 ans, et la voilà duchesse de Bretagne. Elle essaie de résister, mais les troupes françaises prennent Nantes et son château en 1491. Pour protéger son pays, Anne n'a plus le choix : en décembre 1491, elle épouse le roi de France, Charles VIII. La jeune duchesse devient reine de France.`,
-    illustration: "",
+    illustration: "/images/anne-de-bretagne.png",
     engraving: "blason",
-    caption: "Les armes de Bretagne, d'hermine plain",
+    caption: "Anne de Bretagne, gravure ancienne",
   },
 
   // ─────────────────────────── PAGE 6 ───────────────────────────
@@ -123,9 +124,9 @@ export const chaptersData = [
     title: "Deux fois reine",
     subtitle: "1498 – 1514",
     content: `En 1498, le roi Charles VIII meurt après s'être cogné la tête contre une porte basse du château d'Amboise. Anne revient en Bretagne et gouverne de nouveau son duché. Mais l'histoire n'est pas finie : le 8 janvier 1499, elle épouse le nouveau roi, Louis XII, dans la chapelle du château de Nantes. Elle est ainsi la seule femme de l'histoire à avoir été deux fois reine de France ! Anne aime son château. Elle fait terminer les travaux commencés par son père. Elle fait décorer le Grand Logis, le bâtiment principal, avec des sculptures de pierre fines comme de la dentelle, et construire une tour aux balcons élégants, la tour de la Couronne d'Or. Quand elle meurt en 1514, son cœur est placé dans une précieuse boîte en or et rapporté à Nantes, près de ses parents.`,
-    illustration: "",
+    illustration: "/images/anne-couronnee.png",
     engraving: "castle",
-    caption: "Le Grand Logis et ses lucarnes",
+    caption: "Anne de Bretagne, deux fois reine de France",
   },
 
   // ─────────────────────────── PAGE 7 ───────────────────────────
@@ -134,9 +135,9 @@ export const chaptersData = [
     title: "La Bretagne devient française",
     subtitle: "1532 – 1598",
     content: `Après la mort d'Anne, sa fille Claude épouse le futur roi François Ier. La Bretagne n'a plus de duc à elle. En 1532, elle s'unit officiellement à la France, en gardant certains droits particuliers. Le château n'appartient plus aux ducs, mais au roi, qui y place un gouverneur. Quelques années plus tard, la France est déchirée par les guerres de Religion entre catholiques et protestants. Le gouverneur de Bretagne, le duc de Mercœur, refuse d'obéir au roi Henri IV. Il transforme le château en citadelle et ajoute de grands bastions, des murs en forme de pointe qui résistent mieux aux boulets de canon. En 1598, Mercœur se soumet enfin, et Henri IV vient à Nantes. Impressionné par les murailles, il se serait écrié : « Les ducs de Bretagne n'étaient pas de petits compagnons ! » Cette année-là, il signe à Nantes l'édit de Nantes, qui ramène la paix entre catholiques et protestants.`,
-    illustration: "",
+    illustration: "/images/armes-france-bretagne.png",
     engraving: "union",
-    caption: "France et Bretagne réunies",
+    caption: "Les armes de France et de Bretagne réunies",
   },
 
   // ─────────────────────────── PAGE 8 ───────────────────────────
@@ -145,9 +146,9 @@ export const chaptersData = [
     title: "Une prison pour les ennemis du roi",
     subtitle: "1626 – 1661",
     content: `Au XVIIe siècle, le château n'est plus une maison de princes. Avec ses murs épais et ses soldats, il devient une prison pour les personnages importants qui ont déplu au roi. En 1626, le comte de Chalais y est enfermé : il est accusé d'avoir comploté contre le puissant cardinal de Richelieu, et il sera condamné à mort. En 1654, c'est le tour du cardinal de Retz, un ennemi du ministre Mazarin. Mais lui ne compte pas rester enfermé ! Un soir d'août, il s'évade en se laissant glisser le long d'une corde depuis le haut des remparts, puis s'enfuit à cheval. Il tombe et se blesse à l'épaule, mais il réussit à s'échapper. En 1661, le jeune roi Louis XIV vient à Nantes. Il y fait arrêter son ministre des finances, Nicolas Fouquet, par d'Artagnan, le vrai mousquetaire qui a inspiré le célèbre roman Les Trois Mousquetaires.`,
-    illustration: "",
+    illustration: "/images/voutes-prison.webp",
     engraving: "tower",
-    caption: "L'évasion du cardinal de Retz, 1654",
+    caption: "Sous les voûtes du château",
   },
 
   // ─────────────────────────── PAGE 9 ───────────────────────────

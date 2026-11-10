@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BookOpen, ArrowLeft, ArrowRight, X, Rotate3d, ZoomIn, ZoomOut, List, Sparkles } from 'lucide-react'
+import { BookOpen, ArrowLeft, ArrowRight, X, Rotate3d, ZoomIn, ZoomOut, List, Sparkles, Image as ImageIcon, AlignLeft, Hand } from 'lucide-react'
 import { PHASE } from '../state/bookMachine'
 import { roman } from '../three/canvasUtils'
 
@@ -66,7 +66,7 @@ export default function UI({ state, spreads, dispatch }) {
             <button className={smallBtn} onClick={() => setTocOpen(true)} disabled={busy} aria-label="Ouvrir le sommaire">
               <List size={15} /> <span className="hidden sm:inline">Sommaire</span>
             </button>
-            <button className={smallBtn} onClick={() => dispatch({ type: 'TOGGLE_ZOOM' })} disabled={busy} aria-pressed={zoom}>
+            <button className={smallBtn} onClick={() => dispatch({ type: 'TOGGLE_ZOOM' })} disabled={busy} aria-pressed={!!zoom}>
               {zoom ? <ZoomOut size={15} /> : <ZoomIn size={15} />}
               <span className="hidden sm:inline">{zoom ? 'Dézoomer' : 'Zoomer'}</span>
             </button>
@@ -102,6 +102,33 @@ export default function UI({ state, spreads, dispatch }) {
               <ArrowRight size={20} strokeWidth={1.8} />
             </button>
           </nav>
+
+          {/* gros plan : choix de la page + aide au déplacement */}
+          {zoom && current?.kind === 'chapter' && (
+            <div className="fade-up absolute inset-x-0 top-[4.75rem] md:top-24 flex flex-col items-center gap-2 px-3">
+              <div role="group" aria-label="Page en gros plan" className="pointer-events-auto flex rounded-full border border-gold/50 bg-[#140b06]/85 p-1 backdrop-blur-sm">
+                {[
+                  ['image', 'Illustration', ImageIcon],
+                  ['text', 'Texte', AlignLeft],
+                ].map(([side, label, Icon]) => (
+                  <button
+                    key={side}
+                    onClick={() => dispatch({ type: 'FOCUS', side })}
+                    disabled={busy}
+                    aria-pressed={zoom === side}
+                    className={`flex items-center gap-2 rounded-full px-4 py-2 font-display text-[11px] sm:text-xs uppercase tracking-[0.2em] transition ${focusRing} ${
+                      zoom === side ? 'bg-gradient-to-b from-[#e2c072] to-[#a17c38] text-[#1d0f06]' : 'text-gold-light/85 hover:text-white'
+                    }`}
+                  >
+                    <Icon size={14} /> {label}
+                  </button>
+                ))}
+              </div>
+              <p className="flex items-center gap-2 rounded-full bg-[#140b06]/60 px-3 py-1 font-serif italic text-xs sm:text-sm text-gold-light/75">
+                <Hand size={14} /> Faites glisser pour parcourir la page · molette pour ajuster
+              </p>
+            </div>
+          )}
 
           {/* info-bulle de la maquette pop-up */}
           {info && current?.kind === 'popup' && (

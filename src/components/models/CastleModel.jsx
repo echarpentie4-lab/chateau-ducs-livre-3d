@@ -5,6 +5,7 @@ import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Edges } from '@react-three/drei'
 import * as THREE from 'three'
+import { makePaperTextures } from '../../three/materialsTextures'
 
 // Plan simplifié (x, z) — environ 1 unité de large. +z = vers le lecteur.
 const CORNERS = [[-0.5, -0.12], [-0.18, -0.46], [0.4, -0.42], [0.5, 0.28], [-0.28, 0.44]]
@@ -76,12 +77,43 @@ const dormerGeometry = (() => {
   return new THREE.ExtrudeGeometry(s, { depth: 0.02, bevelEnabled: false })
 })()
 
+// Dégradé "encre ancienne → ocre → blanc cassé" du bas vers le haut de chaque pièce.
+function inkGradient(mat) {
+  mat.onBeforeCompile = (shader) => {
+    shader.vertexShader = 'varying float vPaperH;\n' + shader.vertexShader.replace(
+      '#include <begin_vertex>',
+      '#include <begin_vertex>\n  vPaperH = position.y;',
+    )
+    shader.fragmentShader = 'varying float vPaperH;\n' + shader.fragmentShader.replace(
+      '#include <map_fragment>',
+      `#include <map_fragment>
+      float k = smoothstep(0.0, 0.2, vPaperH);
+      vec3 ink = vec3(0.62, 0.48, 0.32);
+      vec3 ochre = vec3(0.93, 0.82, 0.62);
+      diffuseColor.rgb *= mix(mix(ink, ochre, smoothstep(0.0, 0.5, k)), vec3(1.0), smoothstep(0.4, 1.0, k));`,
+    )
+  }
+  mat.customProgramCacheKey = () => 'paper-ink-gradient'
+  return mat
+}
+
 function useMaterials(paper) {
   return useMemo(() => {
     if (paper) {
-      const sheet = new THREE.MeshStandardMaterial({ color: '#f4ecd8', roughness: 0.88, flatShading: true, side: THREE.DoubleSide })
-      const kraft = new THREE.MeshStandardMaterial({ color: '#d9c092', roughness: 0.85, flatShading: true, side: THREE.DoubleSide })
-      return { wall: sheet, tower: sheet, building: sheet, roof: kraft, dark: kraft }
+      const { map, bumpMap } = makePaperTextures()
+      const sheet = (color, roughness = 0.9) =>
+        inkGradient(
+          new THREE.MeshStandardMaterial({
+            color, map, bumpMap, bumpScale: 2.5, roughness, flatShading: true, side: THREE.DoubleSide,
+          }),
+        )
+      return {
+        wall: sheet('#fbf4e4'), // blanc cassé
+        tower: sheet('#f3dfb6'), // ocre clair
+        building: sheet('#fffaf0'), // tuffeau blanc
+        roof: sheet('#c9a35e', 0.7), // papier kraft doré
+        dark: new THREE.MeshStandardMaterial({ color: '#4a3220', roughness: 0.9 }),
+      }
     }
     const stone = new THREE.MeshStandardMaterial({ color: '#b59877', roughness: 0.95 })
     const tuffeau = new THREE.MeshStandardMaterial({ color: '#e8dcc3', roughness: 0.9 })
@@ -95,7 +127,7 @@ function Part({ geometry, material, paper, children, ...props }) {
   return (
     <mesh geometry={geometry} material={material} castShadow receiveShadow {...props}>
       {children}
-      {paper && <Edges threshold={25} color="#c9a24a" />}
+      {paper && <Edges threshold={25} color="#e8bd5f" />}
     </mesh>
   )
 }

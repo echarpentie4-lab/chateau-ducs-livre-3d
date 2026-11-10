@@ -2,12 +2,14 @@
 import { useEffect, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import gsap from 'gsap'
+import { MOUSE, TOUCH } from 'three'
 import { PHASE } from '../state/bookMachine'
 import { orbitPose, alignPose, readingPose, pagePose, popupPose } from '../three/cameraPoses'
 
 const MODES = {
   orbit: { rotate: true, minDist: 2.6, maxDist: 9, minPolar: 0.08, maxPolar: Math.PI * 0.56 },
   reading: { rotate: false, minDist: 1.0, maxDist: 8, minPolar: 0, maxPolar: Math.PI * 0.45 },
+  zoom: { rotate: false, pan: true, minDist: 0.6, maxDist: 8, minPolar: 0, maxPolar: Math.PI * 0.45 },
   popup: { rotate: true, minDist: 1.2, maxDist: 7, minPolar: 0.15, maxPolar: Math.PI * 0.46 },
 }
 
@@ -24,9 +26,12 @@ export default function Director({ phase, spread, zoom, spreads, anim, leafState
   const setMode = (name) => {
     const m = MODES[name]
     Object.assign(controls, {
-      enabled: true, enableRotate: m.rotate, enablePan: false, enableZoom: true,
+      enabled: true, enableRotate: m.rotate, enablePan: !!m.pan, enableZoom: true, screenSpacePanning: true,
       minDistance: m.minDist, maxDistance: m.maxDist, minPolarAngle: m.minPolar, maxPolarAngle: m.maxPolar,
     })
+    // en gros plan, glisser = se déplacer dans la page (souris et tactile)
+    controls.mouseButtons.LEFT = m.pan ? MOUSE.PAN : MOUSE.ROTATE
+    controls.touches.ONE = m.pan ? TOUCH.PAN : TOUCH.ROTATE
   }
 
   const moveCamera = (t, pose, at, duration, ease = 'power3.inOut') => {
@@ -59,6 +64,13 @@ export default function Director({ phase, spread, zoom, spreads, anim, leafState
   }
 
   const isPopup = (i) => spreads[i]?.kind === 'popup'
+  const poseFor = () =>
+    isPopup(spread)
+      ? popupPose(size.width, size.height, !!zoom)
+      : zoom
+        ? pagePose(size.width, size.height, zoom)
+        : readingPose(size.width, size.height)
+  const modeFor = () => (isPopup(spread) ? 'popup' : zoom ? 'zoom' : 'reading')
 
   // ── Transitions principales
   useEffect(() => {
@@ -131,20 +143,14 @@ export default function Director({ phase, spread, zoom, spreads, anim, leafState
   // ── Zoom (page de texte, ou maquette pop-up)
   useEffect(() => {
     if (!controls || phase !== PHASE.READING) return
-    const pose = isPopup(spread)
-      ? popupPose(size.width, size.height, zoom)
-      : zoom
-        ? pagePose(size.width, size.height)
-        : readingPose(size.width, size.height)
-    run((t) => moveCamera(t, pose, 0, 1.1), isPopup(spread) ? 'popup' : 'reading', false)
+    run((t) => moveCamera(t, poseFor(), 0, 1.4, 'power3.inOut'), modeFor(), false)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [zoom])
 
   // ── Recadrage si la fenêtre change de taille
   useEffect(() => {
     if (!controls || phase !== PHASE.READING || busy.current) return
-    const pose = isPopup(spread) ? popupPose(size.width, size.height, zoom) : zoom ? pagePose(size.width, size.height) : readingPose(size.width, size.height)
-    run((t) => moveCamera(t, pose, 0, 0.8, 'power2.out'), isPopup(spread) ? 'popup' : 'reading', false)
+    run((t) => moveCamera(t, poseFor(), 0, 0.8, 'power2.out'), modeFor(), false)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [size.width, size.height])
 

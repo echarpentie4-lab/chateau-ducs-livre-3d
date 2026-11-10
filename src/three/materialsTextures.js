@@ -452,3 +452,45 @@ export function makeCompassDialTexture() {
   }
   return toTexture(c)
 }
+
+// ───────────────────────── Papier d'origami ─────────────────────────
+// Couleur : papier vergé grainé, marbrures d'ocre et fibres. Relief : grain + vergeures.
+export function makePaperTextures() {
+  const S = 512
+  const [c, ctx] = makeCanvas(S, S)
+  const r = rng(61)
+  ctx.fillStyle = '#f2e7cf'
+  ctx.fillRect(0, 0, S, S)
+  blotches(ctx, S, S, 70, r, '196,150,80', 0.16, 30, 140) // ocre
+  blotches(ctx, S, S, 25, r, '120,85,50', 0.08, 20, 90) // encre ancienne
+  blotches(ctx, S, S, 40, r, '255,252,240', 0.2, 30, 120) // blanc cassé
+  for (let i = 0; i < 500; i++) {
+    const x = r() * S
+    const y = r() * S
+    const a = r() * Math.PI
+    const l = 4 + r() * 18
+    ctx.strokeStyle = `rgba(140,100,55,${0.05 + r() * 0.08})`
+    ctx.lineWidth = 0.6
+    ctx.beginPath()
+    ctx.moveTo(x, y)
+    ctx.lineTo(x + Math.cos(a) * l, y + Math.sin(a) * l)
+    ctx.stroke()
+  }
+  addNoise(ctx, S, S, 14, r)
+
+  const [b, bctx] = makeCanvas(S, S)
+  bctx.fillStyle = '#808080'
+  bctx.fillRect(0, 0, S, S)
+  for (let y = 0; y < S; y += 6) {
+    bctx.fillStyle = 'rgba(255,255,255,0.10)' // vergeures
+    bctx.fillRect(0, y, S, 2)
+  }
+  for (let x = 0; x < S; x += 64) {
+    bctx.fillStyle = 'rgba(0,0,0,0.10)' // pontuseaux
+    bctx.fillRect(x, 0, 2, S)
+  }
+  addNoise(bctx, S, S, 70, rng(62))
+  const map = toTexture(c, { repeat: [3, 3] })
+  const bumpMap = toTexture(b, { repeat: [3, 3], color: false })
+  return { map, bumpMap }
+}

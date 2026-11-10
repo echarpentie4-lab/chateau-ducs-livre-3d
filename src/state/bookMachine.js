@@ -5,7 +5,7 @@
 //   READING ─NEXT/PREV/GOTO─▶ TURNING ─DONE─▶ READING
 //   READING ─CLOSE─▶ CLOSING (fermeture, retour en lévitation) ─DONE─▶ CLOSED
 //
-// "zoom" et "info" sont des sous-états de READING (remis à zéro à chaque page).
+// "zoom" (false | 'text' | 'image') et "info" sont des sous-états de READING (remis à zéro à chaque page).
 // Toute action non prévue pour l'état courant est ignorée.
 
 export const PHASE = {
@@ -36,10 +36,13 @@ export function createBookReducer(spreadCount) {
         return turnTo(state, action.index)
       case 'CLOSE':
         return state.phase === PHASE.READING ? { ...state, phase: PHASE.CLOSING, zoom: false, info: false } : state
+      // zoom : false | 'text' (page de droite) | 'image' (page de gauche)
       case 'TOGGLE_ZOOM':
-        return state.phase === PHASE.READING ? { ...state, zoom: !state.zoom, info: state.zoom ? false : state.info } : state
+        return state.phase === PHASE.READING ? { ...state, zoom: state.zoom ? false : 'text', info: state.zoom ? false : state.info } : state
+      case 'FOCUS':
+        return state.phase === PHASE.READING ? { ...state, zoom: action.side } : state
       case 'INSPECT':
-        return state.phase === PHASE.READING ? { ...state, zoom: true, info: true } : state
+        return state.phase === PHASE.READING ? { ...state, zoom: 'text', info: true } : state
       case 'HIDE_INFO':
         return { ...state, info: false }
       case 'DONE':
