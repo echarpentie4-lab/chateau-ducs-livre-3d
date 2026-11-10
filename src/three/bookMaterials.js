@@ -20,7 +20,7 @@ export function getBookMaterials(id, meta, totalT) {
   const cover = makeCoverTextures(meta)
   const spineTex = makeSpineTextures(meta, totalT / COVER_H)
   const leather = new THREE.MeshStandardMaterial({ map: makeLeatherTexture(meta.leather || '#4a2415', 31, [1, 1]), roughness: 0.62 })
-  const endpaper = new THREE.MeshStandardMaterial({ map: makeEndpaperTexture(), roughness: 0.8 })
+  const endpaper = new THREE.MeshStandardMaterial({ map: makeEndpaperTexture(meta.leather), roughness: 0.8 })
   const coverFront = new THREE.MeshStandardMaterial({
     map: cover.map, metalnessMap: cover.metalnessMap, metalness: 1, roughness: 0.48,
   })

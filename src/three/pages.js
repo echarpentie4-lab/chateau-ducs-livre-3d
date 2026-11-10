@@ -165,7 +165,7 @@ function layoutBody(ctx, text, width, fs, withDrop) {
   return { lines, lh, space, drop, height }
 }
 
-function drawBody(ctx, text, x0, top, width, maxH, { maxFs = 40, withDrop = true } = {}) {
+function drawBody(ctx, text, x0, top, width, maxH, { maxFs = 40, withDrop = true, dropColor = RED } = {}) {
   let fs = maxFs
   let lay = layoutBody(ctx, text, width, fs, withDrop)
   while (lay.height > maxH && fs > 16) {
@@ -181,7 +181,7 @@ function drawBody(ctx, text, x0, top, width, maxH, { maxFs = 40, withDrop = true
   if (drop) {
     ctx.save()
     ctx.font = `700 ${drop.size}px ${DISPLAY}`
-    ctx.fillStyle = RED
+    ctx.fillStyle = dropColor
     ctx.fillText(drop.ch, x0, top + fs + 2 * lh)
     ctx.restore()
   }
@@ -379,10 +379,10 @@ function drawChapterLeft(ctx, spread, img, meta, folioN) {
   folio(ctx, 'back', folioN)
 }
 
-function drawChapterRight(ctx, spread, folioN) {
+function drawChapterRight(ctx, spread, folioN, meta) {
   const { x0, x1 } = area('front')
   runningHead(ctx, 'front', spread.title)
-  const end = drawBody(ctx, spread.content, x0, 165, x1 - x0, PH - 165 - 170)
+  const end = drawBody(ctx, spread.content, x0, 165, x1 - x0, PH - 165 - 170, { dropColor: meta.leather || RED })
   if (end < PH - 230) ornament(ctx, (x0 + x1) / 2, end + 16, 70)
   folio(ctx, 'front', folioN)
 }
@@ -411,7 +411,7 @@ function drawPopupLeft(ctx, spread, meta, folioN) {
   ornament(ctx, cx, y + 18, 120)
   ctx.restore()
   const bodyTop = y + 50
-  const end = drawBody(ctx, spread.content || '', x0 + 10, bodyTop, x1 - x0 - 20, PH - bodyTop - 250, { maxFs: 38 })
+  const end = drawBody(ctx, spread.content || '', x0 + 10, bodyTop, x1 - x0 - 20, PH - bodyTop - 250, { maxFs: 38, dropColor: meta.leather || RED })
   ctx.save()
   ctx.textAlign = 'center'
   ctx.fillStyle = RED
@@ -530,7 +530,7 @@ export function createPage(def, side, spreads, meta) {
     const folioL = (def.idx ?? 0) * 2 + 2
     if (def.kind === 'title') drawTitlePage(ctx, meta, img)
     else if (def.kind === 'left') s.kind === 'popup' ? drawPopupLeft(ctx, s, meta, folioL) : drawChapterLeft(ctx, s, img, meta, folioL)
-    else if (def.kind === 'right') s.kind === 'popup' ? drawPopupRight(ctx, folioL + 1, s.model) : drawChapterRight(ctx, s, folioL + 1)
+    else if (def.kind === 'right') s.kind === 'popup' ? drawPopupRight(ctx, folioL + 1, s.model) : drawChapterRight(ctx, s, folioL + 1, meta)
     else drawColophon(ctx)
     texture.needsUpdate = true
   }

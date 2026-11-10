@@ -212,13 +212,16 @@ export function makeGiltEdgeTexture() {
   return tex
 }
 
-// Garde marbrée (intérieur de la couverture), tons sourds.
-export function makeEndpaperTexture() {
+// Garde marbrée (intérieur de la couverture), dans la couleur du cuir du livre.
+export function makeEndpaperTexture(base = '#4a1d18') {
   const [c, ctx] = makeCanvas(512, 512)
   const r = rng(13)
-  ctx.fillStyle = '#4a1d18'
+  const [R, G, B] = [1, 3, 5].map((i) => parseInt(base.slice(i, i + 2), 16))
+  const tone = (k, a) => `rgba(${Math.round(R * k)},${Math.round(G * k)},${Math.round(B * k)},${a})`
+  ctx.fillStyle = tone(0.8, 1)
   ctx.fillRect(0, 0, 512, 512)
-  const cols = ['rgba(30,35,55,0.4)', 'rgba(200,160,90,0.12)', 'rgba(70,15,12,0.5)', 'rgba(230,210,170,0.06)']
+  // veines du marbré dans la teinte du cuir, rehaussées d'or pâle
+  const cols = [tone(0.45, 0.45), tone(1.5, 0.35), 'rgba(200,160,90,0.12)', tone(0.6, 0.5), 'rgba(230,210,170,0.06)']
   for (let i = 0; i < 200; i++) {
     ctx.strokeStyle = cols[i % cols.length]
     ctx.lineWidth = 1 + r() * 5
