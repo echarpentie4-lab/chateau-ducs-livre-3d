@@ -119,7 +119,9 @@ export default function Book({ bookId, anim, leafStates, popAnim, spreads, meta,
 
     // ── répartition du bloc entre gauche et droite selon les pages tournées
     let turned = 0
-    for (const l of leafStates) turned += l.p
+    // la page de titre (feuillet 0) ne compte pas : seule, elle repose directement sur
+    // l'intérieur de la couverture, sans bloc de pages dessous (pas de surface qui bouge)
+    for (let i = 1; i < leafStates.length; i++) turned += leafStates[i].p
     const frac = turned / count
     shape.hR = BLOCK_T * (1 - frac)
     // le bloc de gauche n'existe qu'une fois la couverture posée à plat (sinon il flotterait dans le vide)
@@ -132,7 +134,7 @@ export default function Book({ bookId, anim, leafStates, popAnim, spreads, meta,
       updateBlockGeometry(blockR, shape.hR, s)
       updateBlockGeometry(blockL, shape.hL, s)
     }
-    leftBlock.current.visible = shape.hL > 0.002
+    leftBlock.current.visible = shape.hL > 0.004
 
     // ── maquette pop-up posée sur la page de droite
     if (popup.current) {
@@ -156,7 +158,7 @@ export default function Book({ bookId, anim, leafStates, popAnim, spreads, meta,
         </group>
         {/* blocs de pages (tranches dorées, courbe de gouttière) */}
         <mesh geometry={blockR} material={mats.block} position={[0, COVER_T, 0]} castShadow receiveShadow frustumCulled={false} />
-        <mesh ref={leftBlock} geometry={blockL} material={mats.blockLeft} position={[0, COVER_T, 0]} scale={[-1, 1, 1]} castShadow receiveShadow frustumCulled={false} />
+        <mesh ref={leftBlock} geometry={blockL} material={mats.block} position={[0, COVER_T + 0.0008, 0]} scale={[-1, 1, 1]} castShadow receiveShadow frustumCulled={false} />
         {/* feuillets */}
         <group position={[0, COVER_T, 0]}>
           {pages.map((pg, i) => (
