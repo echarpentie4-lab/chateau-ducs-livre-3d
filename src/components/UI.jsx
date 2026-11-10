@@ -30,7 +30,7 @@ const smallRound =
   `pointer-events-auto grid h-11 w-11 place-items-center rounded-full border border-gold/55 bg-[#140b06]/75 ` +
   `text-gold-light backdrop-blur-sm transition active:scale-95 ${focusRing}`
 
-const spreadLabel = (s) => (s.kind === 'popup' ? 'Planche dépliante' : `Chapitre ${roman(s.number)}`)
+const spreadLabel = (s) => (s.number ? `Chapitre ${roman(s.number)}` : 'Planche dépliante')
 
 export default function UI({ state, catalogue, spreads, dispatch }) {
   const [tocOpen, setTocOpen] = useState(false)
@@ -224,7 +224,7 @@ export default function UI({ state, catalogue, spreads, dispatch }) {
                           i === spread ? 'bg-gold/15 text-white' : 'text-[#f3e6c8]'
                         }`}
                       >
-                        <span className="w-10 shrink-0 font-display text-xs text-gold">{s.kind === 'popup' ? '✦' : roman(s.number)}</span>
+                        <span className="w-10 shrink-0 font-display text-xs text-gold">{s.number ? roman(s.number) : '✦'}</span>
                         <span className="font-serif text-lg leading-tight">{s.title}</span>
                         <span className="ml-auto shrink-0 font-serif italic text-xs text-gold/70">p. {i + 1}</span>
                       </button>

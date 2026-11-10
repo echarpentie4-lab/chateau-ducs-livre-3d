@@ -276,7 +276,9 @@ function drawTitlePage(ctx, meta, img) {
   const bottom = PH - 220
   const maxW = x1 - x0 + 20
   const maxH = bottom - top
-  if (img) {
+  if (img && meta.titlePageImageFrame) {
+    drawIllustration(ctx, img, cx, top + 10, maxW - 40, maxH - 20, { engraving: meta.titleEngraving, number: 0 })
+  } else if (img) {
     const [sx, sy, sw, sh] = trimWhite(img) // on retire les marges blanches du croquis
     const ar = sw / sh
     const w = Math.min(maxW, maxH * ar)
@@ -395,55 +397,94 @@ function drawPopupLeft(ctx, spread, meta, folioN) {
   ctx.fillStyle = RED
   ctx.font = `600 28px ${DISPLAY}`
   setSpacing(ctx, 10)
-  ctx.fillText(String(spread.subtitle || 'Planche dépliante').toUpperCase(), cx, 230)
+  const kicker = spread.number ? `CHAPITRE ${roman(spread.number)}` : String(spread.subtitle || 'Planche dépliante').toUpperCase()
+  ctx.fillText(kicker, cx, 205)
   setSpacing(ctx, 0)
-  ornament(ctx, cx, 262, 200)
-  let y = centeredTitle(ctx, spread.title, cx, 300, x1 - x0 - 20, 70)
-  ornament(ctx, cx, y + 20, 120)
+  ornament(ctx, cx, 236, 200)
+  let y = centeredTitle(ctx, spread.title, cx, 262, x1 - x0 - 20, 62)
+  if (spread.number && spread.subtitle) {
+    ctx.fillStyle = SEPIA
+    ctx.font = `italic 32px ${FELL}`
+    ctx.fillText(spread.subtitle, cx, y + 8)
+    y += 44
+  }
+  ornament(ctx, cx, y + 18, 120)
   ctx.restore()
-  const end = drawBody(ctx, spread.content || '', x0 + 20, y + 70, x1 - x0 - 40, PH - y - 420, { maxFs: 40 })
+  const bodyTop = y + 50
+  const end = drawBody(ctx, spread.content || '', x0 + 10, bodyTop, x1 - x0 - 20, PH - bodyTop - 250, { maxFs: 38 })
   ctx.save()
   ctx.textAlign = 'center'
-  ctx.fillStyle = SEPIA
-  ctx.font = `italic 30px ${FELL}`
-  if (spread.hint) wrapSimple(ctx, `☞ ${spread.hint}`, x1 - x0 - 60).forEach((l, i) => ctx.fillText(l, cx, end + 60 + i * 38))
-  ctx.fillStyle = INK
-  drawErmine(ctx, cx, PH - 230, 60)
+  ctx.fillStyle = RED
+  ctx.font = `italic 28px ${FELL}`
+  if (spread.hint) wrapSimple(ctx, `☞ ${spread.hint}`, x1 - x0 - 60).forEach((l, i) => ctx.fillText(l, cx, Math.max(end + 40, PH - 230) + i * 34))
   ctx.restore()
   folio(ctx, 'back', folioN)
 }
 
-function drawPopupRight(ctx, folioN) {
+// Plan au sol sous la maquette : douves (château), canal (LU) ou parvis pavé (cathédrale).
+function drawPopupRight(ctx, folioN, model = 'castle') {
   const cx = PW / 2 + 20
   const cy = PH / 2 - 20
   ctx.save()
-  // douves et emprise du château (à l'échelle de la maquette)
-  ctx.strokeStyle = 'rgba(70,90,100,0.35)'
-  ctx.lineWidth = 40
-  ctx.beginPath()
-  ctx.ellipse(cx, cy, 420, 470, 0, 0, Math.PI * 2)
-  ctx.stroke()
-  ctx.strokeStyle = SEPIA
-  ctx.lineWidth = 2
-  ctx.setLineDash([10, 8])
-  for (const r of [395, 445]) {
-    ctx.beginPath()
-    ctx.ellipse(cx, cy, r, r + 50, 0, 0, Math.PI * 2)
-    ctx.stroke()
-  }
-  ctx.setLineDash([])
-  ctx.globalAlpha = 0.25
-  for (let a = 0; a < Math.PI * 2; a += 0.05) {
-    ctx.beginPath()
-    ctx.moveTo(cx + Math.cos(a) * 470, cy + Math.sin(a) * 520)
-    ctx.lineTo(cx + Math.cos(a) * 500, cy + Math.sin(a) * 555)
-    ctx.stroke()
-  }
-  ctx.globalAlpha = 1
   ctx.fillStyle = SEPIA
+  ctx.strokeStyle = SEPIA
   ctx.textAlign = 'center'
-  ctx.font = `italic 28px ${FELL}`
-  ctx.fillText('Les douves, remplies par la Loire', cx, PH - 160)
+  if (model === 'lu') {
+    // le canal Saint-Félix au pied de l'usine
+    ctx.fillStyle = 'rgba(70,90,100,0.22)'
+    ctx.fillRect(90, cy + 330, PW - 180, 170)
+    ctx.globalAlpha = 0.5
+    ctx.lineWidth = 1.5
+    for (let yy = cy + 350; yy < cy + 490; yy += 16)
+      for (let xx = 110; xx < PW - 120; xx += 70) {
+        ctx.beginPath()
+        ctx.moveTo(xx, yy)
+        ctx.quadraticCurveTo(xx + 18, yy - 6, xx + 36, yy)
+        ctx.stroke()
+      }
+    ctx.globalAlpha = 1
+    ctx.setLineDash([10, 8])
+    ctx.strokeRect(150, cy - 420, PW - 300, 720)
+    ctx.setLineDash([])
+    ctx.font = `italic 28px ${FELL}`
+    ctx.fillText('Le canal Saint-Félix', cx, PH - 160)
+  } else if (model === 'cathedral') {
+    // parvis pavé de la place Saint-Pierre
+    ctx.globalAlpha = 0.25
+    ctx.lineWidth = 1
+    for (let yy = cy - 470; yy < cy + 520; yy += 34) {
+      ctx.beginPath()
+      ctx.moveTo(120, yy)
+      ctx.lineTo(PW - 120, yy)
+      ctx.stroke()
+      for (let xx = 120 + ((yy / 34) % 2) * 25; xx < PW - 120; xx += 50) {
+        ctx.beginPath()
+        ctx.moveTo(xx, yy)
+        ctx.lineTo(xx, yy + 34)
+        ctx.stroke()
+      }
+    }
+    ctx.globalAlpha = 1
+    ctx.font = `italic 28px ${FELL}`
+    ctx.fillText('Le parvis de la place Saint-Pierre', cx, PH - 160)
+  } else {
+    ctx.strokeStyle = 'rgba(70,90,100,0.35)'
+    ctx.lineWidth = 40
+    ctx.beginPath()
+    ctx.ellipse(cx, cy, 420, 470, 0, 0, Math.PI * 2)
+    ctx.stroke()
+    ctx.strokeStyle = SEPIA
+    ctx.lineWidth = 2
+    ctx.setLineDash([10, 8])
+    for (const r of [395, 445]) {
+      ctx.beginPath()
+      ctx.ellipse(cx, cy, r, r + 50, 0, 0, Math.PI * 2)
+      ctx.stroke()
+    }
+    ctx.setLineDash([])
+    ctx.font = `italic 28px ${FELL}`
+    ctx.fillText('Les douves, remplies par la Loire', cx, PH - 160)
+  }
   ctx.restore()
   folio(ctx, 'front', folioN)
 }
@@ -489,7 +530,7 @@ export function createPage(def, side, spreads, meta) {
     const folioL = (def.idx ?? 0) * 2 + 2
     if (def.kind === 'title') drawTitlePage(ctx, meta, img)
     else if (def.kind === 'left') s.kind === 'popup' ? drawPopupLeft(ctx, s, meta, folioL) : drawChapterLeft(ctx, s, img, meta, folioL)
-    else if (def.kind === 'right') s.kind === 'popup' ? drawPopupRight(ctx, folioL + 1) : drawChapterRight(ctx, s, folioL + 1)
+    else if (def.kind === 'right') s.kind === 'popup' ? drawPopupRight(ctx, folioL + 1, s.model) : drawChapterRight(ctx, s, folioL + 1)
     else drawColophon(ctx)
     texture.needsUpdate = true
   }

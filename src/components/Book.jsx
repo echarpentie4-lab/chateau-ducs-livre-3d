@@ -171,7 +171,7 @@ export default function Book({ bookId, anim, leafStates, popAnim, spreads, meta,
         </group>
         {/* origami pop-up */}
         <group ref={popup} position={[PAGE_W / 2 + 0.02, 0, -0.02]} visible={false}>
-          <PopupCastle progress={popAnim} onInspect={onInspect} />
+          <PopupCastle model={spreads.find((sp) => sp.kind === 'popup')?.model} progress={popAnim} onInspect={onInspect} />
         </group>
       </group>
     </group>

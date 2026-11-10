@@ -65,8 +65,12 @@ export function createBookReducer(spreadCounts) {
 export function buildSpreads(chapters) {
   let n = 0
   return chapters.map((c) => {
-    if (c.type === 'popup') return { ...c, kind: 'popup' }
+    // planche dépliante seule (type: "popup") : pas de numéro de chapitre
+    if (c.type === 'popup') return { ...c, kind: 'popup', model: c.model || 'castle' }
     n += 1
-    return { ...c, kind: 'chapter', number: parseInt(c.chapterNumber, 10) || n }
+    const number = parseInt(c.chapterNumber, 10) || n
+    // chapitre avec maquette pop-up (popup: "lu" | "cathedral" | "castle")
+    if (c.popup) return { ...c, kind: 'popup', model: c.popup, number }
+    return { ...c, kind: 'chapter', number }
   })
 }

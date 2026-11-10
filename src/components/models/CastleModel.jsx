@@ -27,7 +27,7 @@ const BUILDINGS = [
   { x: 0.33, z: -0.02, w: 0.36, d: 0.12, h: 0.15, rh: 0.11, a: -1.43, dormers: 3 }, // Grand Gouvernement
 ]
 
-const easeOutBack = (t) => {
+export const easeOutBack = (t) => {
   const c1 = 1.5
   const c3 = c1 + 1
   return 1 + c3 * (t - 1) ** 3 + c1 * (t - 1) ** 2
@@ -54,7 +54,7 @@ function wallGeometry(len, h, depth) {
   return g
 }
 
-function roofGeometry(w, d, rh) {
+export function roofGeometry(w, d, rh) {
   const s = new THREE.Shape()
   s.moveTo(-d / 2 - 0.01, 0)
   s.lineTo(d / 2 + 0.01, 0)
@@ -66,7 +66,7 @@ function roofGeometry(w, d, rh) {
   return g
 }
 
-const dormerGeometry = (() => {
+export const dormerGeometry = (() => {
   const s = new THREE.Shape()
   s.moveTo(-0.03, 0)
   s.lineTo(0.03, 0)
@@ -97,7 +97,7 @@ function inkGradient(mat) {
   return mat
 }
 
-function useMaterials(paper) {
+export function useMaterials(paper) {
   return useMemo(() => {
     if (paper) {
       const { map, bumpMap } = makePaperTextures()
@@ -123,7 +123,7 @@ function useMaterials(paper) {
   }, [paper])
 }
 
-function Part({ geometry, material, paper, children, ...props }) {
+export function Part({ geometry, material, paper, children, ...props }) {
   return (
     <mesh geometry={geometry} material={material} castShadow receiveShadow {...props}>
       {children}
@@ -132,14 +132,48 @@ function Part({ geometry, material, paper, children, ...props }) {
   )
 }
 
-export default function CastleModel({ variant = 'stone', progress = null, onInspect, ...props }) {
-  const paper = variant === 'paper'
-  const m = useMaterials(paper)
+// Animation de dépliage partagée par toutes les maquettes pop-up.
+// Chaque pièce s'enregistre avec un type de mouvement et un instant de départ.
+export function usePopupPieces(paper, progress) {
   const pieces = useRef(new Map())
-  const reg = (id, kind, start, extra = {}) => (obj) => {
+  useFrame(() => {
+    if (!paper || !progress) return
+    const u = progress.u
+    for (const p of pieces.current.values()) {
+      const raw = Math.min(1, Math.max(0, (u - p.start) / 0.42))
+      const t = raw <= 0 ? 0 : easeOutBack(raw)
+      p.obj.visible = raw > 0.001
+      if (p.kind === 'wall') p.obj.rotation.x = p.sign * (Math.PI / 2) * (1 - t)
+      else if (p.kind === 'tower') {
+        p.obj.scale.y = Math.max(0.001, t)
+        p.obj.rotation.y = (1 - t) * 1.4
+      } else if (p.kind === 'building') p.obj.rotation.x = -(Math.PI / 2) * (1 - t)
+      else if (p.kind === 'bridge') p.obj.scale.z = Math.max(0.001, t)
+    }
+  })
+  return (id, kind, start, extra = {}) => (obj) => {
     if (obj) pieces.current.set(id, { obj, kind, start, ...extra })
     else pieces.current.delete(id)
   }
+}
+
+export function popupInteraction(paper, onInspect) {
+  return paper && onInspect
+    ? {
+        onClick: (e) => {
+          e.stopPropagation()
+          if (e.delta < 6) onInspect()
+        },
+        onPointerOver: () => (document.body.style.cursor = 'pointer'),
+        onPointerOut: () => (document.body.style.cursor = ''),
+      }
+    : {}
+}
+
+export default function CastleModel({ variant = 'stone', progress = null, onInspect, ...props }) {
+  const paper = variant === 'paper'
+  const m = useMaterials(paper)
+  const reg = usePopupPieces(paper, progress)
 
   const geo = useMemo(() => {
     const depth = paper ? 0.006 : 0.032
@@ -178,36 +212,12 @@ export default function CastleModel({ variant = 'stone', progress = null, onInsp
     return { walls, towers, buildings, gate, door, bridge }
   }, [paper])
 
-  useFrame(() => {
-    if (!paper || !progress) return
-    const u = progress.u
-    for (const p of pieces.current.values()) {
-      const raw = Math.min(1, Math.max(0, (u - p.start) / 0.42))
-      const t = raw <= 0 ? 0 : easeOutBack(raw)
-      p.obj.visible = raw > 0.001
-      if (p.kind === 'wall') p.obj.rotation.x = p.sign * (Math.PI / 2) * (1 - t)
-      else if (p.kind === 'tower') {
-        p.obj.scale.y = Math.max(0.001, t)
-        p.obj.rotation.y = (1 - t) * 1.4
-      } else if (p.kind === 'building') p.obj.rotation.x = -(Math.PI / 2) * (1 - t)
-      else if (p.kind === 'bridge') p.obj.scale.z = Math.max(0.001, t)
-    }
-  })
 
   const gateX = 0.11
   const gateZ = 0.36
   const gateA = Math.atan2(-(0.44 - 0.28), -0.28 - 0.5)
 
-  const interact = paper && onInspect
-    ? {
-        onClick: (e) => {
-          e.stopPropagation()
-          if (e.delta < 6) onInspect()
-        },
-        onPointerOver: () => (document.body.style.cursor = 'pointer'),
-        onPointerOut: () => (document.body.style.cursor = ''),
-      }
-    : {}
+  const interact = popupInteraction(paper, onInspect)
 
   return (
     <group {...props} {...interact}>
