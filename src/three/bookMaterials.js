@@ -34,6 +34,9 @@ export function getBookMaterials(id, meta, totalT) {
     backCover: [leather, leather, leather, leather, leather, leather],
     spine: [leather, spineMat, leather, leather, leather, leather],
     block: [paper, gilt],
+    // bloc de gauche : dessus en papier marbré (= intérieur de couverture) pour ne jamais
+    // montrer une page vierge quand la première page repasse à droite
+    blockLeft: [endpaper, gilt],
     blockBox: [gilt, paper, paper, paper, gilt, gilt],
   }
   cache.set(key, mats)

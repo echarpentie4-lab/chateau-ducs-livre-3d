@@ -156,7 +156,7 @@ export default function Book({ bookId, anim, leafStates, popAnim, spreads, meta,
         </group>
         {/* blocs de pages (tranches dorées, courbe de gouttière) */}
         <mesh geometry={blockR} material={mats.block} position={[0, COVER_T, 0]} castShadow receiveShadow frustumCulled={false} />
-        <mesh ref={leftBlock} geometry={blockL} material={mats.block} position={[0, COVER_T, 0]} scale={[-1, 1, 1]} castShadow receiveShadow frustumCulled={false} />
+        <mesh ref={leftBlock} geometry={blockL} material={mats.blockLeft} position={[0, COVER_T, 0]} scale={[-1, 1, 1]} castShadow receiveShadow frustumCulled={false} />
         {/* feuillets */}
         <group position={[0, COVER_T, 0]}>
           {pages.map((pg, i) => (
