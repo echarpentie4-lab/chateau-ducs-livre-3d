@@ -6,9 +6,12 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import CastleModel from './models/CastleModel'
 import OptionalModel from './models/OptionalModel'
-import { LuTowerModel, CathedralModel } from './models/LandmarkModels'
+import { LuTowerModel, CathedralModel, ElephantModel, PassageModel } from './models/LandmarkModels'
 
-const GLB = { castle: 'chateau-origami', lu: 'lu-origami', cathedral: 'cathedrale-origami' }
+const GLB = {
+  castle: 'chateau-origami', lu: 'lu-origami', cathedral: 'cathedrale-origami',
+  elephant: 'elephant-origami', passage: 'passage-origami',
+}
 
 // Lumière rasante dédiée : l'ombre portée de la maquette s'allonge sur les pages
 // à mesure qu'elle se déplie (intensité liée à la progression).
@@ -45,9 +48,13 @@ function PopupLight({ progress }) {
 export default function PopupCastle({ model = 'castle', progress, onInspect }) {
   const paper =
     model === 'lu' ? (
-      <LuTowerModel progress={progress} onInspect={onInspect} scale={1.15} />
+      <LuTowerModel progress={progress} onInspect={onInspect} scale={1.1} />
     ) : model === 'cathedral' ? (
-      <CathedralModel progress={progress} onInspect={onInspect} scale={1.25} />
+      <CathedralModel progress={progress} onInspect={onInspect} scale={1.15} />
+    ) : model === 'elephant' ? (
+      <ElephantModel progress={progress} onInspect={onInspect} scale={1.05} rotation={[0, -0.5, 0]} position={[-0.08, 0, 0.05]} />
+    ) : model === 'passage' ? (
+      <PassageModel progress={progress} onInspect={onInspect} scale={1.15} />
     ) : (
       <CastleModel variant="paper" progress={progress} onInspect={onInspect} scale={0.95} />
     )

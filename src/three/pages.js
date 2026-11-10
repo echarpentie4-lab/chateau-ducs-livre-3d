@@ -448,6 +448,41 @@ function drawPopupRight(ctx, folioN, model = 'castle') {
     ctx.setLineDash([])
     ctx.font = `italic 28px ${FELL}`
     ctx.fillText('Le canal Saint-Félix', cx, PH - 160)
+  } else if (model === 'elephant') {
+    // les rails du parc des Chantiers
+    ctx.lineWidth = 2
+    for (const dx of [-60, 60]) {
+      ctx.beginPath()
+      ctx.moveTo(cx + dx - 260, PH - 260)
+      ctx.lineTo(cx + dx + 140, 180)
+      ctx.stroke()
+    }
+    ctx.globalAlpha = 0.45
+    for (let k = 0; k < 18; k++) {
+      const t = k / 17
+      const x = cx - 260 + t * 400
+      const y = PH - 260 - t * (PH - 440)
+      ctx.beginPath()
+      ctx.moveTo(x - 80, y)
+      ctx.lineTo(x + 80, y)
+      ctx.stroke()
+    }
+    ctx.globalAlpha = 1
+    ctx.font = `italic 28px ${FELL}`
+    ctx.fillText('Le parc des Chantiers, sur l\'île de Nantes', cx, PH - 160)
+  } else if (model === 'passage') {
+    // parquet de la galerie
+    ctx.globalAlpha = 0.25
+    ctx.lineWidth = 1
+    for (let x = 230; x < PW - 190; x += 22) {
+      ctx.beginPath()
+      ctx.moveTo(x, 160)
+      ctx.lineTo(x, PH - 220)
+      ctx.stroke()
+    }
+    ctx.globalAlpha = 1
+    ctx.font = `italic 28px ${FELL}`
+    ctx.fillText('La galerie, de la rue de la Fosse à la rue Santeuil', cx, PH - 160)
   } else if (model === 'cathedral') {
     // parvis pavé de la place Saint-Pierre
     ctx.globalAlpha = 0.25

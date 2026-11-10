@@ -97,6 +97,23 @@ function inkGradient(mat) {
   return mat
 }
 
+// Feuille de papier teintée (même grain que les maquettes), pour les détails colorés.
+let paperTex = null
+const sheetCache = new Map()
+export function paperSheet(color, { roughness = 0.9, ...opts } = {}) {
+  const key = `${color}|${roughness}|${JSON.stringify(opts)}`
+  if (sheetCache.has(key)) return sheetCache.get(key)
+  paperTex ||= makePaperTextures()
+  const mat = inkGradient(
+    new THREE.MeshStandardMaterial({
+      color, map: paperTex.map, bumpMap: paperTex.bumpMap, bumpScale: 2.5, roughness,
+      flatShading: true, side: THREE.DoubleSide, ...opts,
+    }),
+  )
+  sheetCache.set(key, mat)
+  return mat
+}
+
 export function useMaterials(paper) {
   return useMemo(() => {
     if (paper) {
